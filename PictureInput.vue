@@ -135,6 +135,8 @@ export default {
         }
       }
 
+      this.$emit('change')
+
       if (this.supportsPreview) {
         this.loadImage(files[0])
       } else {
