@@ -41,10 +41,10 @@ export default {
 
 ## Props
 
-- *width, height*: (pixels, optional) the width and the height of the preview container. The picture will be resized and centered to cover this area. If not specified, the preview container will expand to full width, 1:1 square ratio.
-- *margin*: (pixels, optional) the margin around the preview container.
-- *accept*: (media type, optional) the accepted image type(s) (e.g. image/jpeg, image/gif, etc.) Default value: image/*. 
-- *id, name*: (string, optional) the id and name attributes of the HTML input element
+- **width, height**: (pixels, optional) the width and the height of the preview container. The picture will be resized and centered to cover this area. If not specified, the preview container will expand to full width, 1:1 square ratio.
+- **margin**: (pixels, optional) the margin around the preview container.
+- **accept**: (media type, optional) the accepted image type(s) (e.g. image/jpeg, image/gif, etc.) Default value: image/*. 
+- **id, name**: (string, optional) the id and name attributes of the HTML input element
 
 
 ## TODOs
