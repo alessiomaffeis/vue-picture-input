@@ -136,6 +136,7 @@ export default {
       }
 
       this.$emit('change')
+      this.$emit('input', files[0])
 
       if (this.supportsPreview) {
         this.loadImage(files[0])
@@ -149,7 +150,6 @@ export default {
         let reader = new FileReader()
         reader.onload = e => {
           this.image = e.target.result
-          this.$emit('input', e.target.result)
           this.imageObject = new Image()
           this.imageObject.onload = () => {
             this.drawImage(this.imageObject)
