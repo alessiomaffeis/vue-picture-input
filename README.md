@@ -26,7 +26,7 @@ npm install --save vue-picture-input
 
 ```javascript
 <script>
-import PictureInput from './components/PictureInput'
+import PictureInput from 'vue-picture-input'
 
 export default {
   name: 'app',
