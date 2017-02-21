@@ -71,7 +71,7 @@ export default {
     }
   },
   mounted () {
-    this.$nextTick(function () {
+    this.$nextTick(() => {
       window.addEventListener('resize', this.onResize)
       this.onResize()
     })
@@ -206,7 +206,7 @@ export default {
     },
     getEXIFOrientation (file, callback) {
       var reader = new FileReader()
-      reader.onload = function (e) {
+      reader.onload = e => {
         var view = new DataView(e.target.result)
         if (view.getUint16(0, false) !== 0xFFD8) {
           return callback(-2)
