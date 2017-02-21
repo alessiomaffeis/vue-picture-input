@@ -136,6 +136,7 @@ export default {
       }
 
       this.$emit('change')
+      this.$emit('input', files[0])
 
       if (this.supportsPreview) {
         this.loadImage(files[0])
@@ -147,7 +148,7 @@ export default {
       this.getEXIFOrientation(file, (orientation) => {
         this.setOrientation(orientation)
         let reader = new FileReader()
-        reader.onload = (e) => {
+        reader.onload = e => {
           this.image = e.target.result
           this.imageObject = new Image()
           this.imageObject.onload = () => {
