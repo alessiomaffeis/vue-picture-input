@@ -57,14 +57,14 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
 
 ## Props
 
-- **width, height**: (pixels, optional) the width and the height of the preview container. The picture will be resized and centered to cover this area. If not specified, the preview container will expand to full width, 1:1 square ratio.
-- **margin**: (pixels, optional) the margin around the preview container.
-- **accept**: (media type, optional) the accepted image type(s) (e.g. image/jpeg, image/gif, etc.) Default value: image/*. 
+- **width, height**: (pixels, optional) the maximum width and height of the preview container. The picture will be resized and centered to cover this area. If not specified, the preview container will expand to full width, 1:1 square ratio.
+- **margin**: (pixels, optional) the margin around the preview container. Default value: 0.
+- **accept**: (media type, optional) the accepted image type(s), e.g. image/jpeg, image/gif, etc. Default value: 'image/*'. 
 - **id, name**: (string, optional) the id and name attributes of the HTML input element.
 
 ## Events
 
-- **change**: emitted on (successful) picture change. If you need to access the underlying image from a parent component, add a *ref* attribute <picture-input> (see the example above).
+- **change**: emitted on (successful) picture change. If you need to access the underlying image from the parent component, add a *ref* attribute to <picture-input> (see the example above).
 
 
 ## TODOs
