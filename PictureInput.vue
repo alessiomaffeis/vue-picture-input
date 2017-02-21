@@ -1,7 +1,7 @@
 <template>
   <div id="picture-input" class="picture-input">
     <div v-if="!supportsUpload">
-      <h3>Your device doesn't support file uploading.</h3>
+      <p>Your device doesn't support file uploading.</p>
     </div>
     <div v-else-if="supportsPreview">
       <div class="preview-container" 
@@ -19,19 +19,19 @@
             @click="selectImage"
             :style="{height: previewHeight + 'px'}">
           </canvas>
-        <div v-if="!image" 
+        <div v-if="!imageSelected" 
           class="picture-inner"
             :style="{top: -previewHeight + 'px', marginBottom: -previewHeight + 'px' }">
           <span v-if="supportsDragAndDrop" class="picture-inner-text">Drag an image or <br>click here to select a file</span>
           <span v-else class="picture-inner-text" >Tap here to select a photo <br>from your gallery</span>
         </div>
       </div>
-      <button v-if="image" @click="selectImage" class="btn btn-primary button">Change Photo</button>
+      <button v-if="imageSelected" @click="selectImage" class="btn btn-primary button">Change Photo</button>
     </div>
     <div v-else>
-      <button v-if="!image" class="btn btn-primary button" @click="selectImage">Select a Photo</button>
+      <button v-if="!imageSelected" class="btn btn-primary button" @click="selectImage">Select a Photo</button>
       <div v-else>
-        <h3>Photo successfully selected!</h3>
+        <p>Photo successfully selected!</p>
         <button @click="selectImage" class="btn btn-primary button">Change Photo</button>
       </div>
     </div>
@@ -64,7 +64,7 @@ export default {
   },
   data () {
     return {
-      image: '',
+      imageSelected: false,
       previewHeight: 0,
       previewWidth: 0,
       draggingOver: false
@@ -123,7 +123,12 @@ export default {
       if (!files.length) {
         return
       }
-
+      if (files[0].name === this.fileName && files[0].size === this.fileSize && this.fileModified === files[0].lastModified) {
+        return
+      }
+      this.fileName = files[0].name
+      this.fileSize = files[0].size
+      this.fileModified = files[0].lastModified
       if (this.accept === 'image/*') {
         if (files[0].type.substr(0, 6) !== 'image/') {
           return
@@ -134,13 +139,12 @@ export default {
           return
         }
       }
-
-      this.$emit('change')
-
+      this.imageSelected = true
+      this.image = ''
       if (this.supportsPreview) {
         this.loadImage(files[0])
       } else {
-        this.image = true
+        this.$emit('change')
       }
     },
     loadImage (file) {
@@ -149,6 +153,7 @@ export default {
         let reader = new FileReader()
         reader.onload = (e) => {
           this.image = e.target.result
+          this.$emit('change')
           this.imageObject = new Image()
           this.imageObject.onload = () => {
             this.drawImage(this.imageObject)

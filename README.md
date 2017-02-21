@@ -16,15 +16,22 @@ npm install --save vue-picture-input
 
 ## Usage
 
+```HTML
+<template>
+  <div class="hello">    
+    <picture-input ref="pictureInput" @change="onChange" width="600" height="600" margin="16" accept="image/jpeg,image/png"></picture-input>   
+  </div>
+</template>
+```
+
 ```javascript
 <script>
-import PictureInput from 'vue-picture-input'
+import PictureInput from './components/PictureInput'
 
 export default {
   name: 'app',
   data () {
     return {
-      msg: 'Welcome to Your Vue.js App'
     }
   },
   components: {
@@ -32,20 +39,21 @@ export default {
   },
   methods: {
     onChange () {
-      console.log("Picture changed!")
+      console.log('New picture selected!')
+      if (this.$refs.pictureInput.image) {
+        console.log('Picture loaded.')
+      } else {
+        console.log('FileReader API not supported: use the <form>, Luke!')
+      }
     }
   }
 }
 </script>
 ```
 
-```HTML
-<template>
-  <div class="hello">    
-    <picture-input @change="onChange()" width="600" height="600" margin="16" accept="image/jpeg,image/png"></picture-input>   
-  </div>
-</template>
-```
+## Example project
+
+You can find an example project here: https://github.com/alessiomaffeis/vue-picture-input-example
 
 ## Props
 
@@ -56,12 +64,13 @@ export default {
 
 ## Events
 
-- **change**: emitted on (successful) picture change.
+- **change**: emitted on (successful) picture change. If you need to access the underlying image from a parent component, add a *ref* attribute <picture-input> (see the example above).
 
 
 ## TODOs
 
-- Add support for multiple files 
+- File size limit check
+- Add support for multiple files (?)
 - Demo GitHub pages
 
 
