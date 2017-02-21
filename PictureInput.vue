@@ -147,8 +147,9 @@ export default {
       this.getEXIFOrientation(file, (orientation) => {
         this.setOrientation(orientation)
         let reader = new FileReader()
-        reader.onload = (e) => {
+        reader.onload = e => {
           this.image = e.target.result
+          this.$emit('input', e.target.result)
           this.imageObject = new Image()
           this.imageObject.onload = () => {
             this.drawImage(this.imageObject)
