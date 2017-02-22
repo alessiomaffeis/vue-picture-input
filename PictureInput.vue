@@ -1,7 +1,7 @@
 <template>
   <div id="picture-input" class="picture-input">
     <div v-if="!supportsUpload">
-      <p>Your device doesn't support file uploading.</p>
+      <p>Your device does not support file uploading.</p>
     </div>
     <div v-else-if="supportsPreview">
       <div class="preview-container" 
@@ -44,16 +44,19 @@ export default {
   name: 'picture-input',
   props: {
     width: {
-      default: Number.MAX_VALUE
+      default: Number.MAX_SAFE_INTEGER
     },
     height: {
-      default: Number.MAX_VALUE
+      default: Number.MAX_SAFE_INTEGER
     },
     margin: {
       default: 0
     },
     accept: {
       default: 'image/*'
+    },
+    size: {
+      default: Number.MAX_SAFE_INTEGER
     },
     name: {
       default: null
@@ -121,6 +124,10 @@ export default {
     onFileChange (e) {
       let files = e.target.files || e.dataTransfer.files
       if (!files.length) {
+        return
+      }
+      if (files[0].size <= 0 || files[0].size > this.size * 1024 * 1024) {
+        alert('The file size exceeds the ' + this.size + 'MB limit.')
         return
       }
       if (files[0].name === this.fileName && files[0].size === this.fileSize && this.fileModified === files[0].lastModified) {
