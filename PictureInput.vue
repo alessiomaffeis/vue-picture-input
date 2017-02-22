@@ -22,8 +22,8 @@
         <div v-if="!imageSelected" 
           class="picture-inner"
             :style="{top: -previewHeight + 'px', marginBottom: -previewHeight + 'px' }">
-          <span v-if="supportsDragAndDrop" class="picture-inner-text">Drag an image or <br>click here to select a file</span>
-          <span v-else class="picture-inner-text" >Tap here to select a photo <br>from your gallery</span>
+          <span v-if="supportsDragAndDrop" class="picture-inner-text" v-html="dragText"></span>
+          <span v-else class="picture-inner-text" v-html="tapText"></span>
         </div>
       </div>
       <button v-if="imageSelected" @click="selectImage" :class="buttonClass">Change Photo</button>
@@ -66,6 +66,12 @@ export default {
     },
     buttonClass: {
       default: 'btn btn-primary button'
+    },
+    dragText: {
+      default: 'Drag an image or <br>click here to select a file'
+    },
+    tapText: {
+      default: 'Tap here to select a photo <br>from your gallery'
     }
   },
   data () {
