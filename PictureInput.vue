@@ -65,7 +65,7 @@ export default {
       default: null
     },
     buttonClass: {
-      default: ''
+      default: 'btn btn-primary button'
     }
   },
   data () {
