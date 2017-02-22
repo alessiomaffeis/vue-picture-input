@@ -1,5 +1,5 @@
 <template>
-  <div id="picture-input" class="picture-input">
+  <div ref="container" id="picture-input" class="picture-input">
     <div v-if="!supportsUpload">
       <p>Your device does not support file uploading.</p>
     </div>
@@ -97,12 +97,12 @@ export default {
   methods: {
     onResize () {
       let previewRatio = this.width / this.height
-      let newWidth = document.documentElement.clientWidth
-      if (newWidth === this.viewportWidth) {
+      let newWidth = this.$refs.container.clientWidth
+      if (newWidth === this.containerWidth) {
         return
       }
-      this.viewportWidth = newWidth
-      this.previewWidth = Math.min(this.viewportWidth - this.margin * 2, this.width)
+      this.containerWidth = newWidth
+      this.previewWidth = Math.min(this.containerWidth - this.margin * 2, this.width)
       this.previewHeight = this.previewWidth / previewRatio
       if (this.imageObject) {
         this.drawImage(this.imageObject)
