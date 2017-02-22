@@ -19,7 +19,7 @@ npm install --save vue-picture-input
 ```HTML
 <template>
   <div class="hello">    
-    <picture-input ref="pictureInput" @change="onChange" width="600" height="600" margin="16" accept="image/jpeg,image/png" size="10" buttonClass="btn"></picture-input>   
+    <picture-input ref="pictureInput" @change="onChange" width="600" height="600" margin="16" accept="image/jpeg,image/png" size="10" buttonClass="btn"></picture-input>
   </div>
 </template>
 ```
