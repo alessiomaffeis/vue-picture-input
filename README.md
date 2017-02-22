@@ -19,7 +19,7 @@ npm install --save vue-picture-input
 ```HTML
 <template>
   <div class="hello">    
-    <picture-input ref="pictureInput" @change="onChange" width="600" height="600" margin="16" accept="image/jpeg,image/png" size="10"></picture-input>   
+    <picture-input ref="pictureInput" @change="onChange" width="600" height="600" margin="16" accept="image/jpeg,image/png" size="10" buttonClass="btn"></picture-input>
   </div>
 </template>
 ```
@@ -62,6 +62,7 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
 - **accept**: (media type, optional) the accepted image type(s), e.g. image/jpeg, image/gif, etc. Default value: 'image/*'. 
 - **size**: (MB, optional) the maximum accepted file size in megabytes.
 - **id, name**: (string, optional) the id and name attributes of the HTML input element.
+- **buttonClass**: (string, optional) the class which will be applied to the 'Change Photo' button.
 
 ## Events
 
