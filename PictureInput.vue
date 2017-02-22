@@ -26,13 +26,13 @@
           <span v-else class="picture-inner-text" >Tap here to select a photo <br>from your gallery</span>
         </div>
       </div>
-      <button v-if="imageSelected" @click="selectImage" class="btn btn-primary button">Change Photo</button>
+      <button v-if="imageSelected" @click="selectImage" :class="buttonClass">Change Photo</button>
     </div>
     <div v-else>
-      <button v-if="!imageSelected" class="btn btn-primary button" @click="selectImage">Select a Photo</button>
+      <button v-if="!imageSelected" :class="buttonClass" @click="selectImage">Select a Photo</button>
       <div v-else>
         <p>Photo successfully selected!</p>
-        <button @click="selectImage" class="btn btn-primary button">Change Photo</button>
+        <button @click="selectImage" :class="buttonClass">Change Photo</button>
       </div>
     </div>
     <input ref="fileInput" type="file" :name="name" :id="id" :accept="accept" @change="onFileChange">
@@ -60,6 +60,9 @@ export default {
     },
     id: {
       default: null
+    },
+    buttonClass: {
+      default: ''
     }
   },
   data () {
@@ -316,7 +319,7 @@ export default {
   text-align: center;
   font-size: 2em;
 }
-.button {
+button {
   cursor: pointer;
 }
 input[type=file] {
