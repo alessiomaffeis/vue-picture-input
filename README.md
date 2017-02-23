@@ -19,7 +19,20 @@ npm install --save vue-picture-input
 ```HTML
 <template>
   <div class="hello">    
-    <picture-input ref="pictureInput" @change="onChange" width="600" height="600" margin="16" accept="image/jpeg,image/png" size="10" buttonClass="btn"></picture-input>
+    <picture-input 
+      ref="pictureInput" 
+      @change="onChange" 
+      width="600" 
+      height="600" 
+      margin="16" 
+      accept="image/jpeg,image/png" 
+      size="10" 
+      buttonClass="btn"
+      :customStrings="{
+        upload: '<h1>Bummer!</h1>',
+        drag: 'Drag a 😺 GIF or GTFO'
+      }">
+    </picture-input>
   </div>
 </template>
 ```
@@ -63,7 +76,18 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
 - **size**: (MB, optional) the maximum accepted file size in megabytes.
 - **id, name**: (string, optional) the id and name attributes of the HTML input element.
 - **buttonClass**: (string, optional) the class which will be applied to the 'Change Photo' button.
-
+- **customStrings**: (object, optional) use this to provide one or more custom strings (see the example above). Here are the available strings and their default values:
+```
+  upload: '<p>Your device does not support file uploading.</p>', // HTML allowed
+  drag: 'Drag an image or <br>click here to select a file', // HTML allowed
+  tap: 'Tap here to select a photo <br>from your gallery', // HTML allowed
+  change: 'Change Photo', // Text only
+  select: 'Select a Photo', // Text only
+  selected: '<p>Photo successfully selected!</p>', // HTML allowed
+  fileSize: 'The file size exceeds the limit', // Text only
+  fileType: 'This file type is not supported.' // Text only
+```
+   
 ## Events
 
 - **change**: emitted on (successful) picture change. If you need to access the underlying image from the parent component, add a *ref* attribute to picture-input (see the example above).
