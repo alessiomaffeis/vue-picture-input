@@ -65,7 +65,7 @@ export default {
     buttonClass: {
       default: 'btn btn-primary button'
     },
-    croppedPreview: {
+    crop: {
       default: true
     },
     strings: {
@@ -196,7 +196,7 @@ export default {
       let offsetY = 0
       let scaledWidth = this.previewWidth
       let scaledHeight = this.previewHeight
-      if (this.croppedPreview) {
+      if (this.crop) {
         if (this.imageRatio > 1) {
           scaledWidth = scaledHeight * this.imageRatio
           offsetX = (this.previewWidth - scaledWidth) / 2
@@ -206,11 +206,11 @@ export default {
         }
       } else {
         if (this.imageRatio > 1) {
-          scaledWidth = scaledHeight * this.imageRatio
-          offsetX = (this.previewWidth - scaledWidth) / 2
-        } else {
           scaledHeight = scaledWidth / this.imageRatio
           offsetY = (this.previewHeight - scaledHeight) / 2
+        } else {
+          scaledWidth = scaledHeight * this.imageRatio
+          offsetX = (this.previewWidth - scaledWidth) / 2
         }
       }
       const canvas = this.$refs.previewCanvas
