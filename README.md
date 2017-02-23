@@ -71,6 +71,7 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
 ## Props
 
 - **width, height**: (pixels, optional) the maximum width and height of the preview container. The picture will be resized and centered to cover this area. If not specified, the preview container will expand to full width, 1:1 square ratio.
+- **crop**: (boolean, optional) set *:crop="false"* if you wish to disable cropping. The image will be resized and centered in order to be fully contained in the preview container. Default value: true.
 - **margin**: (pixels, optional) the margin around the preview container. Default value: 0.
 - **accept**: (media type, optional) the accepted image type(s), e.g. image/jpeg, image/gif, etc. Default value: 'image/*'. 
 - **size**: (MB, optional) the maximum accepted file size in megabytes.
