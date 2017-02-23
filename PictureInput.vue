@@ -65,18 +65,10 @@ export default {
     buttonClass: {
       default: 'btn btn-primary button'
     },
-    strings: {
+    customStrings: {
+      type: Object,
       default: function () {
-        return {
-          upload: '<p>Your device does not support file uploading.</p>',
-          drag: 'Drag an image or <br>click here to select a file',
-          tap: 'Tap here to select a photo <br>from your gallery',
-          change: 'Change Photo',
-          select: 'Select a Photo',
-          selected: '<p>Photo successfully selected!</p>',
-          fileSize: 'The file size exceeds the limit',
-          fileType: 'This file type is not supported.'
-        }
+        return {}
       }
     }
   },
@@ -85,10 +77,21 @@ export default {
       imageSelected: false,
       previewHeight: 0,
       previewWidth: 0,
-      draggingOver: false
+      draggingOver: false,
+      strings: {
+        upload: '<p>Your device does not support file uploading.</p>',
+        drag: 'Drag an image or <br>click here to select a file',
+        tap: 'Tap here to select a photo <br>from your gallery',
+        change: 'Change Photo',
+        select: 'Select a Photo',
+        selected: '<p>Photo successfully selected!</p>',
+        fileSize: 'The file size exceeds the limit',
+        fileType: 'This file type is not supported.'
+      }
     }
   },
   mounted () {
+    this.updateStrings()
     this.$nextTick(() => {
       window.addEventListener('resize', this.onResize)
       this.onResize()
@@ -106,7 +109,17 @@ export default {
       this.fileTypes = this.fileTypes.map(s => s.trim())
     }
   },
+  beforeDestroy () {
+    window.removeEventListener('resize', this.onResize)
+  },
   methods: {
+    updateStrings () {
+      for (let s in this.customStrings) {
+        if (s in this.strings && typeof this.customStrings[s] === 'string') {
+          this.strings[s] = this.customStrings[s]
+        }
+      }
+    },
     onResize () {
       let previewRatio = this.width / this.height
       let newWidth = this.$refs.container.clientWidth
@@ -288,9 +301,6 @@ export default {
       classObject['dragging-over'] = this.draggingOver
       return classObject
     }
-  },
-  beforeDestroy () {
-    window.removeEventListener('resize', this.onResize)
   }
 }
 </script>
