@@ -42,7 +42,7 @@ export default {
   name: 'picture-input',
   props: {
     width: {
-     type: [String, Number],
+      type: [String, Number],
       default: Number.MAX_SAFE_INTEGER
     },
     height: {
