@@ -1,7 +1,7 @@
 <template>
   <div id="picture-input" class="picture-input">
     <div v-if="!supportsUpload">
-      <p>Your device does not support file uploading.</p>
+      <p v-html="strings.upload"></p>
     </div>
     <div v-else-if="supportsPreview">
       <div class="preview-container" 
@@ -22,17 +22,17 @@
         <div v-if="!imageSelected" 
           class="picture-inner"
             :style="{top: -previewHeight + 'px', marginBottom: -previewHeight + 'px' }">
-          <span v-if="supportsDragAndDrop" class="picture-inner-text" v-html="dragText"></span>
-          <span v-else class="picture-inner-text" v-html="tapText"></span>
+          <span v-if="supportsDragAndDrop" class="picture-inner-text" v-html="strings.drag"></span>
+          <span v-else class="picture-inner-text" v-html="strings.tap"></span>
         </div>
       </div>
-      <button v-if="imageSelected" @click="selectImage" :class="buttonClass">Change Photo</button>
+      <button v-if="imageSelected" @click="selectImage" :class="buttonClass">{{ strings.change }}</button>
     </div>
     <div v-else>
-      <button v-if="!imageSelected" :class="buttonClass" @click="selectImage">Select a Photo</button>
+      <button v-if="!imageSelected" :class="buttonClass" @click="selectImage">{{ strings.select }}</button>
       <div v-else>
-        <p>Photo successfully selected!</p>
-        <button @click="selectImage" :class="buttonClass">Change Photo</button>
+        <div v-html="strings.selected"></div>
+        <button @click="selectImage" :class="buttonClass">{{ strings.change }}</button>
       </div>
     </div>
     <input ref="fileInput" type="file" :name="name" :id="id" :accept="accept" @change="onFileChange">
@@ -67,11 +67,19 @@ export default {
     buttonClass: {
       default: 'btn btn-primary button'
     },
-    dragText: {
-      default: 'Drag an image or <br>click here to select a file'
-    },
-    tapText: {
-      default: 'Tap here to select a photo <br>from your gallery'
+    strings: {
+      default: function () {
+        return {
+          upload: 'Your device does not support file uploading.',
+          drag: 'Drag an image or <br>click here to select a file',
+          tap: 'Tap here to select a photo <br>from your gallery',
+          change: 'Change Photo',
+          select: 'Select a Photo',
+          selected: '<p>Photo successfully selected!</p>',
+          fileSize: 'The file size exceeds the limit',
+          fileType: 'This file type is not supported.'
+        }
+      }
     }
   },
   data () {
@@ -136,7 +144,7 @@ export default {
         return
       }
       if (files[0].size <= 0 || files[0].size > this.size * 1024 * 1024) {
-        alert('The file size exceeds the ' + this.size + 'MB limit.')
+        alert(this.strings.fileSize + ' (' + this.size + 'MB)')
         return
       }
       if (files[0].name === this.fileName && files[0].size === this.fileSize && this.fileModified === files[0].lastModified) {
@@ -151,7 +159,7 @@ export default {
         }
       } else {
         if (this.fileTypes.indexOf(files[0].type) === -1) {
-          alert('This file type is not supported.')
+          alert(this.strings.fileType)
           return
         }
       }
