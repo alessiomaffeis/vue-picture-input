@@ -73,6 +73,9 @@ export default {
       type: String,
       default: 'btn btn-primary button'
     },
+    crop: {
+      default: true
+    },
     customStrings: {
       type: Object,
       default: () => {
@@ -214,12 +217,22 @@ export default {
       let offsetY = 0
       let scaledWidth = this.previewWidth
       let scaledHeight = this.previewHeight
-      if (this.imageRatio > 1) {
-        scaledWidth = scaledHeight * this.imageRatio
-        offsetX = (this.previewWidth - scaledWidth) / 2
+      if (this.crop) {
+        if (this.imageRatio > 1) {
+          scaledWidth = scaledHeight * this.imageRatio
+          offsetX = (this.previewWidth - scaledWidth) / 2
+        } else {
+          scaledHeight = scaledWidth / this.imageRatio
+          offsetY = (this.previewHeight - scaledHeight) / 2
+        }
       } else {
-        scaledHeight = scaledWidth / this.imageRatio
-        offsetY = (this.previewHeight - scaledHeight) / 2
+        if (this.imageRatio > 1) {
+          scaledHeight = scaledWidth / this.imageRatio
+          offsetY = (this.previewHeight - scaledHeight) / 2
+        } else {
+          scaledWidth = scaledHeight * this.imageRatio
+          offsetX = (this.previewWidth - scaledWidth) / 2
+        }
       }
       const canvas = this.$refs.previewCanvas
       canvas.width = this.previewWidth * this.pixelRatio
