@@ -42,35 +42,44 @@ export default {
   name: 'picture-input',
   props: {
     width: {
+      type: [String, Number],
       default: Number.MAX_SAFE_INTEGER
     },
     height: {
+      type: [String, Number],
       default: Number.MAX_SAFE_INTEGER
     },
     margin: {
+      type: [String, Number],
       default: 0
     },
     accept: {
+      type: String,
       default: 'image/*'
     },
     size: {
+      type: [String, Number],
       default: Number.MAX_SAFE_INTEGER
     },
     name: {
+      type: String,
       default: null
     },
     id: {
+      type: [String, Number],
       default: null
     },
     buttonClass: {
+      type: String,
       default: 'btn btn-primary button'
     },
     crop: {
+      type: Boolean,
       default: true
     },
     customStrings: {
       type: Object,
-      default: function () {
+      default: () => {
         return {}
       }
     }
@@ -186,10 +195,10 @@ export default {
       }
     },
     loadImage (file) {
-      this.getEXIFOrientation(file, (orientation) => {
+      this.getEXIFOrientation(file, orientation => {
         this.setOrientation(orientation)
         let reader = new FileReader()
-        reader.onload = (e) => {
+        reader.onload = e => {
           this.image = e.target.result
           this.$emit('change')
           this.imageObject = new Image()
@@ -227,6 +236,7 @@ export default {
         }
       }
       const canvas = this.$refs.previewCanvas
+      canvas.style.background = 'none'
       canvas.width = this.previewWidth * this.pixelRatio
       canvas.height = this.previewHeight * this.pixelRatio
       this.context.setTransform(1, 0, 0, 1, 0, 0)
