@@ -58,7 +58,7 @@ export default {
       default: 'image/*'
     },
     size: {
-      type: Number,
+      type: [String, Number],
       default: Number.MAX_SAFE_INTEGER
     },
     name: {
@@ -74,6 +74,7 @@ export default {
       default: 'btn btn-primary button'
     },
     crop: {
+      type: Boolean,
       default: true
     },
     customStrings: {
@@ -235,6 +236,7 @@ export default {
         }
       }
       const canvas = this.$refs.previewCanvas
+      canvas.style.background = 'none'
       canvas.width = this.previewWidth * this.pixelRatio
       canvas.height = this.previewHeight * this.pixelRatio
       this.context.setTransform(1, 0, 0, 1, 0, 0)
