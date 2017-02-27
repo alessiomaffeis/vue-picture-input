@@ -75,14 +75,16 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
 - **margin**: (pixels, optional) the margin around the preview container. Default value: 0.
 - **accept**: (media type, optional) the accepted image type(s), e.g. image/jpeg, image/gif, etc. Default value: 'image/*'. 
 - **size**: (MB, optional) the maximum accepted file size in megabytes.
+- **removable**: (boolean, optional) set *:removable="true"* if you want to display a "Remove Photo" button. Default value: false.
 - **id, name**: (string, optional) the id and name attributes of the HTML input element.
-- **buttonClass**: (string, optional) the class which will be applied to the 'Change Photo' button.
+- **buttonClass**: (string, optional) the class which will be applied to the 'Change Photo' and 'Remove Photo' buttons.
 - **customStrings**: (object, optional) use this to provide one or more custom strings (see the example above). Here are the available strings and their default values:
 ```
   upload: '<p>Your device does not support file uploading.</p>', // HTML allowed
   drag: 'Drag an image or <br>click here to select a file', // HTML allowed
   tap: 'Tap here to select a photo <br>from your gallery', // HTML allowed
   change: 'Change Photo', // Text only
+  remove: 'Remove Photo', // Text only
   select: 'Select a Photo', // Text only
   selected: '<p>Photo successfully selected!</p>', // HTML allowed
   fileSize: 'The file size exceeds the limit', // Text only

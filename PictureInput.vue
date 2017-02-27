@@ -25,12 +25,14 @@
         </div>
       </div>
       <button v-if="imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</button>
+      <button v-if="imageSelected && removable" @click.prevent="removeImage" :class="buttonClass">{{ strings.remove }}</button>
     </div>
     <div v-else>
-      <button v-if="!imageSelected" :class="buttonClass" @click.prevent="selectImage">{{ strings.select }}</button>
+      <button v-if="!imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.select }}</button>
       <div v-else>
         <div v-html="strings.selected"></div>
         <button @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</button>
+        <button v-if="removable" @click.prevent="removeImage" :class="buttonClass">{{ strings.remove }}</button>
       </div>
     </div>
     <input ref="fileInput" type="file" :name="name" :id="id" :accept="accept" @change="onFileChange">
@@ -77,6 +79,10 @@ export default {
       type: Boolean,
       default: true
     },
+    removable: {
+      type: Boolean,
+      default: false
+    },
     customStrings: {
       type: Object,
       default: () => {
@@ -95,6 +101,7 @@ export default {
         drag: 'Drag an image or <br>click here to select a file',
         tap: 'Tap here to select a photo <br>from your gallery',
         change: 'Change Photo',
+        remove: 'Remove Photo',
         select: 'Select a Photo',
         selected: '<p>Photo successfully selected!</p>',
         fileSize: 'The file size exceeds the limit',
@@ -256,6 +263,19 @@ export default {
     },
     selectImage () {
       this.$refs.fileInput.click()
+    },
+    removeImage () {
+      this.$refs.fileInput.value = ''
+      this.$refs.fileInput.type = ''
+      this.$refs.fileInput.type = 'file'
+      this.fileName = ''
+      this.fileSize = 0
+      this.fileModified = 0
+      this.imageSelected = false
+      this.image = ''
+      this.imageObject = null
+      this.$refs.previewCanvas.style.backgroundColor = 'rgba(200,200,200,.25)'
+      this.$refs.previewCanvas.width = this.previewWidth * this.pixelRatio
     },
     setOrientation (orientation) {
       this.rotate = false
