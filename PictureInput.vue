@@ -14,7 +14,7 @@
             @dragend.stop.prevent="onDragStop"
             @dragleave.stop.prevent="onDragStop"
             @drop.stop.prevent="onFileDrop"
-            @click="selectImage"
+            @click.prevent="selectImage"
             :style="{height: previewHeight + 'px'}">
           </canvas>
         <div v-if="!imageSelected" 
@@ -24,13 +24,13 @@
           <span v-else class="picture-inner-text" v-html="strings.tap"></span>
         </div>
       </div>
-      <button v-if="imageSelected" @click="selectImage" :class="buttonClass">{{ strings.change }}</button>
+      <button v-if="imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</button>
     </div>
     <div v-else>
-      <button v-if="!imageSelected" :class="buttonClass" @click="selectImage">{{ strings.select }}</button>
+      <button v-if="!imageSelected" :class="buttonClass" @click.prevent="selectImage">{{ strings.select }}</button>
       <div v-else>
         <div v-html="strings.selected"></div>
-        <button @click="selectImage" :class="buttonClass">{{ strings.change }}</button>
+        <button @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</button>
       </div>
     </div>
     <input ref="fileInput" type="file" :name="name" :id="id" :accept="accept" @change="onFileChange">
