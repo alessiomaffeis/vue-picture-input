@@ -361,7 +361,7 @@ export default {
 .preview-container {
   width: 100%;
   box-sizing: border-box;
-  margin: 1em auto;
+  margin: 0 auto;
   cursor: pointer;
   overflow: hidden;
 }
@@ -396,6 +396,7 @@ export default {
   font-size: 2em;
 }
 button {
+  margin: 1em .25em;
   cursor: pointer;
 }
 input[type=file] {
