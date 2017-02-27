@@ -25,14 +25,14 @@
         </div>
       </div>
       <button v-if="imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</button>
-      <button v-if="imageSelected && removable" @click.prevent="removeImage" :class="buttonClass">{{ strings.remove }}</button>
+      <button v-if="imageSelected && removable" @click.prevent="removeImage" :class="removeButtonClass">{{ strings.remove }}</button>
     </div>
     <div v-else>
       <button v-if="!imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.select }}</button>
       <div v-else>
         <div v-html="strings.selected"></div>
         <button @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</button>
-        <button v-if="removable" @click.prevent="removeImage" :class="buttonClass">{{ strings.remove }}</button>
+        <button v-if="removable" @click.prevent="removeImage" :class="removeButtonClass">{{ strings.remove }}</button>
       </div>
     </div>
     <input ref="fileInput" type="file" :name="name" :id="id" :accept="accept" @change="onFileChange">
@@ -74,6 +74,10 @@ export default {
     buttonClass: {
       type: String,
       default: 'btn btn-primary button'
+    },
+    removeButtonClass: {
+      type: String,
+      default: 'btn btn-secondary button secondary'
     },
     crop: {
       type: Boolean,

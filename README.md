@@ -77,7 +77,8 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
 - **size**: (MB, optional) the maximum accepted file size in megabytes.
 - **removable**: (boolean, optional) set *:removable="true"* if you want to display a "Remove Photo" button. Default value: false.
 - **id, name**: (string, optional) the id and name attributes of the HTML input element.
-- **buttonClass**: (string, optional) the class which will be applied to the 'Change Photo' and 'Remove Photo' buttons.
+- **buttonClass**: (string, optional) the class which will be applied to the 'Change Photo' button.
+- **removeButtonClass**: (string, optional) the class which will be applied to the 'Remove Photo' button.
 - **customStrings**: (object, optional) use this to provide one or more custom strings (see the example above). Here are the available strings and their default values:
 ```
   upload: '<p>Your device does not support file uploading.</p>', // HTML allowed
