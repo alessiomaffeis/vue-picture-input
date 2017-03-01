@@ -187,6 +187,7 @@ export default {
       this.fileName = files[0].name
       this.fileSize = files[0].size
       this.fileModified = files[0].lastModified
+      this.fileType = files[0].type
       if (this.accept === 'image/*') {
         if (files[0].type.substr(0, 6) !== 'image/') {
           return
@@ -273,6 +274,7 @@ export default {
       this.$refs.fileInput.type = ''
       this.$refs.fileInput.type = 'file'
       this.fileName = ''
+      this.fileType = ''
       this.fileSize = 0
       this.fileModified = 0
       this.imageSelected = false
