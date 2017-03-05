@@ -14,7 +14,7 @@
             @dragend.stop.prevent="onDragStop"
             @dragleave.stop.prevent="onDragStop"
             @drop.stop.prevent="onFileDrop"
-            @click="selectImage"
+            @click.prevent="selectImage"
             :style="{height: previewHeight + 'px'}">
           </canvas>
         <div v-if="!imageSelected" 
@@ -24,13 +24,15 @@
           <span v-else class="picture-inner-text" v-html="strings.tap"></span>
         </div>
       </div>
-      <button v-if="imageSelected" @click="selectImage" :class="buttonClass">{{ strings.change }}</button>
+      <button v-if="imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</button>
+      <button v-if="imageSelected && removable" @click.prevent="removeImage" :class="removeButtonClass">{{ strings.remove }}</button>
     </div>
     <div v-else>
-      <button v-if="!imageSelected" :class="buttonClass" @click="selectImage">{{ strings.select }}</button>
+      <button v-if="!imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.select }}</button>
       <div v-else>
         <div v-html="strings.selected"></div>
-        <button @click="selectImage" :class="buttonClass">{{ strings.change }}</button>
+        <button @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</button>
+        <button v-if="removable" @click.prevent="removeImage" :class="removeButtonClass">{{ strings.remove }}</button>
       </div>
     </div>
     <input ref="fileInput" type="file" :name="name" :id="id" :accept="accept" @change="onFileChange">
@@ -73,9 +75,17 @@ export default {
       type: String,
       default: 'btn btn-primary button'
     },
+    removeButtonClass: {
+      type: String,
+      default: 'btn btn-secondary button secondary'
+    },
     crop: {
       type: Boolean,
       default: true
+    },
+    removable: {
+      type: Boolean,
+      default: false
     },
     customStrings: {
       type: Object,
@@ -95,6 +105,7 @@ export default {
         drag: 'Drag an image or <br>click here to select a file',
         tap: 'Tap here to select a photo <br>from your gallery',
         change: 'Change Photo',
+        remove: 'Remove Photo',
         select: 'Select a Photo',
         selected: '<p>Photo successfully selected!</p>',
         fileSize: 'The file size exceeds the limit',
@@ -176,6 +187,7 @@ export default {
       this.fileName = files[0].name
       this.fileSize = files[0].size
       this.fileModified = files[0].lastModified
+      this.fileType = files[0].type
       if (this.accept === 'image/*') {
         if (files[0].type.substr(0, 6) !== 'image/') {
           return
@@ -257,6 +269,20 @@ export default {
     selectImage () {
       this.$refs.fileInput.click()
     },
+    removeImage () {
+      this.$refs.fileInput.value = ''
+      this.$refs.fileInput.type = ''
+      this.$refs.fileInput.type = 'file'
+      this.fileName = ''
+      this.fileType = ''
+      this.fileSize = 0
+      this.fileModified = 0
+      this.imageSelected = false
+      this.image = ''
+      this.imageObject = null
+      this.$refs.previewCanvas.style.backgroundColor = 'rgba(200,200,200,.25)'
+      this.$refs.previewCanvas.width = this.previewWidth * this.pixelRatio
+    },
     setOrientation (orientation) {
       this.rotate = false
       if (orientation === 8) {
@@ -337,7 +363,7 @@ export default {
 .preview-container {
   width: 100%;
   box-sizing: border-box;
-  margin: 1em auto;
+  margin: 0 auto;
   cursor: pointer;
   overflow: hidden;
 }
@@ -372,6 +398,7 @@ export default {
   font-size: 2em;
 }
 button {
+  margin: 1em .25em;
   cursor: pointer;
 }
 input[type=file] {
