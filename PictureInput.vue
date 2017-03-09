@@ -184,6 +184,7 @@ export default {
       if (files[0].name === this.fileName && files[0].size === this.fileSize && this.fileModified === files[0].lastModified) {
         return
       }
+      this.file = files[0]
       this.fileName = files[0].name
       this.fileSize = files[0].size
       this.fileModified = files[0].lastModified
