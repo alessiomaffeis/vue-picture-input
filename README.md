@@ -96,7 +96,8 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
    
 ## Events
 
-- **change**: emitted on (successful) picture change. If you need to access the underlying image from the parent component, add a *ref* attribute to picture-input (see the example above).
+- **change**: emitted on (successful) picture change. If you need to access the underlying image from the parent component, add a *ref* attribute to picture-input (see the example above). You may want to use *this.$refs.pictureInput.image* (Base64 Data URI string) or *this.$refs.pictureInput.file* (File Object)
+  
 
 
 ## TODOs
