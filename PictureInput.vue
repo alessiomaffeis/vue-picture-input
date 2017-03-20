@@ -398,6 +398,7 @@ export default {
   vertical-align: middle;
   text-align: center;
   font-size: 2em;
+  line-height: 1.5;
 }
 button {
   margin: 1em .25em;
