@@ -79,6 +79,10 @@ export default {
       type: String,
       default: 'btn btn-secondary button secondary'
     },
+    prefill: {
+      type: String,
+      default: ''
+    },
     crop: {
       type: Boolean,
       default: true
@@ -115,6 +119,10 @@ export default {
   },
   mounted () {
     this.updateStrings()
+    if (this.prefill) {
+      this.preloadImage(this.prefill)
+    }
+
     this.$nextTick(() => {
       window.addEventListener('resize', this.onResize)
       this.onResize()
@@ -329,6 +337,23 @@ export default {
         return callback(-1)
       }
       reader.readAsArrayBuffer(file.slice(0, 65536))
+    },
+    preloadImage (url) {
+      fetch(url).then(response => {
+        return response.blob()
+      })
+      .then(imageBlob => {
+        let e = { target: { files: [] } }
+        const fileName = url.split('/').slice(-1)[0]
+        let fileType = fileName.split('.').slice(-1)[0]
+        fileType = fileType.replace('jpg', 'jpeg')
+        e.target.files[0] = new File([imageBlob], fileName, { type: 'image/' + fileType })
+        console.log(e.target.files[0])
+        this.onFileChange(e)
+      })
+      .catch(err => {
+        console.log('Failed loading prefill image: ' + err.message)
+      })
     }
   },
   computed: {
