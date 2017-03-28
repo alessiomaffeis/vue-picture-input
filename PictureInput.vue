@@ -339,7 +339,13 @@ export default {
       reader.readAsArrayBuffer(file.slice(0, 65536))
     },
     preloadImage (url) {
-      fetch(url).then(response => {
+      let headers = new Headers()
+      headers.append('Accept', 'image/*')
+      fetch(url, {
+        method: 'GET',
+        mode: 'same-origin',
+        headers: headers
+      }).then(response => {
         return response.blob()
       })
       .then(imageBlob => {
@@ -348,7 +354,6 @@ export default {
         let fileType = fileName.split('.').slice(-1)[0]
         fileType = fileType.replace('jpg', 'jpeg')
         e.target.files[0] = new File([imageBlob], fileName, { type: 'image/' + fileType })
-        console.log(e.target.files[0])
         this.onFileChange(e)
       })
       .catch(err => {
