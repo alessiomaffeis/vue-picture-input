@@ -8,10 +8,15 @@ Mobile-friendly picture file input Vue.js component with image preview, drag and
 
 ## Installation
 
-###npm
+### npm
 
 ``` sh
 npm install --save vue-picture-input
+```
+### yarn
+
+``` sh
+yarn add vue-picture-input
 ```
 
 ## Usage
