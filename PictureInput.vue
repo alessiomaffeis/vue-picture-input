@@ -79,6 +79,10 @@ export default {
       type: String,
       default: 'btn btn-secondary button secondary'
     },
+    prefill: {
+      type: String,
+      default: ''
+    },
     crop: {
       type: Boolean,
       default: true
@@ -115,6 +119,10 @@ export default {
   },
   mounted () {
     this.updateStrings()
+    if (this.prefill) {
+      this.preloadImage(this.prefill)
+    }
+
     this.$nextTick(() => {
       window.addEventListener('resize', this.onResize)
       this.onResize()
@@ -184,6 +192,7 @@ export default {
       if (files[0].name === this.fileName && files[0].size === this.fileSize && this.fileModified === files[0].lastModified) {
         return
       }
+      this.file = files[0]
       this.fileName = files[0].name
       this.fileSize = files[0].size
       this.fileModified = files[0].lastModified
@@ -279,6 +288,7 @@ export default {
       this.fileModified = 0
       this.imageSelected = false
       this.image = ''
+      this.file = null
       this.imageObject = null
       this.$refs.previewCanvas.style.backgroundColor = 'rgba(200,200,200,.25)'
       this.$refs.previewCanvas.width = this.previewWidth * this.pixelRatio
@@ -327,6 +337,28 @@ export default {
         return callback(-1)
       }
       reader.readAsArrayBuffer(file.slice(0, 65536))
+    },
+    preloadImage (url) {
+      let headers = new Headers()
+      headers.append('Accept', 'image/*')
+      fetch(url, {
+        method: 'GET',
+        mode: 'same-origin',
+        headers: headers
+      }).then(response => {
+        return response.blob()
+      })
+      .then(imageBlob => {
+        let e = { target: { files: [] } }
+        const fileName = url.split('/').slice(-1)[0]
+        let fileType = fileName.split('.').slice(-1)[0]
+        fileType = fileType.replace('jpg', 'jpeg')
+        e.target.files[0] = new File([imageBlob], fileName, { type: 'image/' + fileType })
+        this.onFileChange(e)
+      })
+      .catch(err => {
+        console.log('Failed loading prefill image: ' + err.message)
+      })
     }
   },
   computed: {
@@ -396,6 +428,7 @@ export default {
   vertical-align: middle;
   text-align: center;
   font-size: 2em;
+  line-height: 1.5;
 }
 button {
   margin: 1em .25em;

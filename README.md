@@ -8,10 +8,15 @@ Mobile-friendly picture file input Vue.js component with image preview, drag and
 
 ## Installation
 
-###npm
+### npm
 
 ``` sh
 npm install --save vue-picture-input
+```
+### yarn
+
+``` sh
+yarn add vue-picture-input
 ```
 
 ## Usage
@@ -81,6 +86,7 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
   Default value: 'btn btn-primary button'.
 - **removeButtonClass**: (string, optional) the class which will be applied to the 'Remove Photo' button.
   Default value: 'btn btn-secondary button secondary'.
+- **prefill**: (url, optional) use this to specify the path to a default image to prefill the input with. Default value: empty.
 - **customStrings**: (object, optional) use this to provide one or more custom strings (see the example above). Here are the available strings and their default values:
 ```
   upload: '<p>Your device does not support file uploading.</p>', // HTML allowed
@@ -96,12 +102,14 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
    
 ## Events
 
-- **change**: emitted on (successful) picture change. If you need to access the underlying image from the parent component, add a *ref* attribute to picture-input (see the example above).
+- **change**: emitted on (successful) picture change. If you need to access the underlying image from the parent component, add a *ref* attribute to picture-input (see the example above). You may want to use *this.$refs.pictureInput.image* (Base64 Data URI string) or *this.$refs.pictureInput.file* (File Object)
+  
 
 
 ## TODOs
 
 - Add support for multiple files
+- Client-side resizing and cropping
 - Demo GitHub pages
 
 
