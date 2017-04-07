@@ -98,6 +98,15 @@ export default {
       }
     }
   },
+  watch: {
+    prefill () {
+      if (this.prefill) {
+        this.preloadImage(this.prefill)
+      } else {
+        this.removeImage()
+      }
+    }
+  },
   data () {
     return {
       imageSelected: false,
