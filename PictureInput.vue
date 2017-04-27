@@ -26,6 +26,7 @@
       </div>
       <button v-if="imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</button>
       <button v-if="imageSelected && removable" @click.prevent="removeImage" :class="removeButtonClass">{{ strings.remove }}</button>
+      <button v-if="imageSelected && rotatable" @click.prevent="rotateImage" :class="rotateButtonClass">{{ strings.rotate }}</button>
     </div>
     <div v-else>
       <button v-if="!imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.select }}</button>
@@ -79,6 +80,10 @@ export default {
       type: String,
       default: 'btn btn-secondary button secondary'
     },
+    rotateButtonClass: {
+      type: String,
+      default: 'btn btn-secondary button secondary'
+    },
     prefill: {
       type: String,
       default: ''
@@ -88,6 +93,10 @@ export default {
       default: true
     },
     removable: {
+      type: Boolean,
+      default: false
+    },
+    rotatable: {
       type: Boolean,
       default: false
     },
@@ -118,6 +127,7 @@ export default {
         drag: 'Drag an image or <br>click here to select a file',
         tap: 'Tap here to select a photo <br>from your gallery',
         change: 'Change Photo',
+        rotate: 'Rotate Photo',
         remove: 'Remove Photo',
         select: 'Select a Photo',
         selected: '<p>Photo successfully selected!</p>',
@@ -302,6 +312,9 @@ export default {
       this.$refs.previewCanvas.style.backgroundColor = 'rgba(200,200,200,.25)'
       this.$refs.previewCanvas.width = this.previewWidth * this.pixelRatio
       this.$emit('remove')
+    },
+    rotateImage () {
+      // TODO
     },
     setOrientation (orientation) {
       this.rotate = false
