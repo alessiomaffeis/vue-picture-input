@@ -121,6 +121,7 @@ export default {
       imageSelected: false,
       previewHeight: 0,
       previewWidth: 0,
+      previewRatio: 0,
       draggingOver: false,
       strings: {
         upload: '<p>Your device does not support file uploading.</p>',
@@ -171,7 +172,7 @@ export default {
       }
     },
     onResize () {
-      let previewRatio = this.width / this.height
+      let previewRatio = this.previewRatio || this.width / this.height
       let newWidth = this.$refs.container.clientWidth
       if (newWidth === this.containerWidth) {
         return
@@ -314,7 +315,14 @@ export default {
       this.$emit('remove')
     },
     rotateImage () {
-      // TODO
+      this.previewRatio = this.height / this.width
+
+      if(this.previewWidth > this.previewHeight) {
+        this.previewRatio = this.width / this.height
+      }
+
+      this.previewHeight = this.previewWidth / this.previewRatio
+      this.drawImage(this.imageObject)
     },
     setOrientation (orientation) {
       this.rotate = false
