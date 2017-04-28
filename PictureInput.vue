@@ -323,6 +323,7 @@ export default {
 
       this.previewHeight = this.previewWidth / this.previewRatio
       this.drawImage(this.imageObject)
+      this.$emit('rotate')
     },
     setOrientation (orientation) {
       this.rotate = false
