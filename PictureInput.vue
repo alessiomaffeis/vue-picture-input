@@ -25,8 +25,8 @@
         </div>
       </div>
       <button v-if="imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</button>
-      <button v-if="imageSelected && removable" @click.prevent="removeImage" :class="removeButtonClass">{{ strings.remove }}</button>
-      <button v-if="imageSelected && rotatable" @click.prevent="rotateImage" :class="rotateButtonClass">{{ strings.rotate }}</button>
+      <button v-if="imageSelected && removable" @click.prevent="removeImage" :class="removeButtonClass"><em v-html="strings.remove"></em></button>
+      <button v-if="imageSelected && rotatable" @click.prevent="rotateImage" :class="rotateButtonClass"><em v-html="strings.rotate"></em></button>
     </div>
     <div v-else>
       <button v-if="!imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.select }}</button>
