@@ -17,14 +17,14 @@
             @click.prevent="selectImage"
             :style="{height: previewHeight + 'px'}">
           </canvas>
-        <div v-if="!imageSelected" 
+        <div v-if="!imageSelected"
           class="picture-inner"
             :style="{top: -previewHeight + 'px', marginBottom: -previewHeight + 'px' }">
           <span v-if="supportsDragAndDrop" class="picture-inner-text" v-html="strings.drag"></span>
           <span v-else class="picture-inner-text" v-html="strings.tap"></span>
         </div>
       </div>
-      <button v-if="imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</button>
+      <button v-if="imageSelected" @click.prevent="selectImage" :class="buttonClass"><em v-html="strings.change"></em></button>
       <button v-if="imageSelected && removable" @click.prevent="removeImage" :class="removeButtonClass"><em v-html="strings.remove"></em></button>
       <button v-if="imageSelected && rotatable" @click.prevent="rotateImage" :class="rotateButtonClass"><em v-html="strings.rotate"></em></button>
     </div>
