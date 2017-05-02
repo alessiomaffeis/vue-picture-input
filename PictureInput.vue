@@ -2,13 +2,13 @@
   <div ref="container" id="picture-input" class="picture-input">
     <div v-if="!supportsUpload" v-html="strings.upload"></div>
     <div v-else-if="supportsPreview">
-      <div class="preview-container" 
+      <div class="preview-container"
         :style="{maxWidth: previewWidth + 'px', height: previewHeight + 'px'}">
           <canvas ref="previewCanvas"
-            class="picture-preview" 
+            class="picture-preview"
             :class="computedClasses"
-            @drag.stop.prevent="" 
-            @dragover.stop.prevent="" 
+            @drag.stop.prevent=""
+            @dragover.stop.prevent=""
             @dragstart.stop.prevent="onDragStart"
             @dragenter.stop.prevent="onDragStart"
             @dragend.stop.prevent="onDragStop"
@@ -85,7 +85,7 @@ export default {
       default: 'btn btn-secondary button secondary'
     },
     prefill: {
-      type: String,
+      type: [String, File],
       default: ''
     },
     crop: {
@@ -212,6 +212,7 @@ export default {
       if (files[0].name === this.fileName && files[0].size === this.fileSize && this.fileModified === files[0].lastModified) {
         return
       }
+
       this.file = files[0]
       this.fileName = files[0].name
       this.fileSize = files[0].size
@@ -370,10 +371,21 @@ export default {
       }
       reader.readAsArrayBuffer(file.slice(0, 65536))
     },
-    preloadImage (url) {
+    preloadImage (source) {
+      if(typeof source === 'object') {
+        this.imageSelected = true
+        this.image = ''
+        if (this.supportsPreview) {
+            this.loadImage(source)
+        } else {
+            this.$emit('change')
+        }
+        return;
+      }
+
       let headers = new Headers()
       headers.append('Accept', 'image/*')
-      fetch(url, {
+      fetch(source, {
         method: 'GET',
         mode: 'same-origin',
         headers: headers
@@ -440,7 +452,7 @@ export default {
   background-color: rgba(200,200,200,.25);
 }
 .picture-preview.dragging-over {
-  filter: brightness(0.5); 
+  filter: brightness(0.5);
 }
 .picture-inner {
   position: relative;
