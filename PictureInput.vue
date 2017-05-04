@@ -80,7 +80,7 @@ export default {
       default: 'btn btn-secondary button secondary'
     },
     prefill: {
-      type: [String, File],
+      type: [String, Object],
       default: ''
     },
     crop: {
@@ -350,17 +350,16 @@ export default {
       reader.readAsArrayBuffer(file.slice(0, 65536))
     },
     preloadImage (source) {
-      if(typeof source === 'object') {
+      if (typeof source === 'object') {
         this.imageSelected = true
         this.image = ''
         if (this.supportsPreview) {
-            this.loadImage(source)
+          this.loadImage(source)
         } else {
-            this.$emit('change')
+          this.$emit('change')
         }
-        return;
+        return
       }
-
       let headers = new Headers()
       headers.append('Accept', 'image/*')
       fetch(source, {
@@ -372,7 +371,7 @@ export default {
       })
       .then(imageBlob => {
         let e = { target: { files: [] } }
-        const fileName = url.split('/').slice(-1)[0]
+        const fileName = source.split('/').slice(-1)[0]
         let fileType = fileName.split('.').slice(-1)[0]
         fileType = fileType.replace('jpg', 'jpeg')
         e.target.files[0] = new File([imageBlob], fileName, { type: 'image/' + fileType })
