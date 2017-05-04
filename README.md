@@ -107,7 +107,6 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
   
 ## TODOs
 
-- Add support for multiple files
 - Client-side resizing and cropping
 - Demo GitHub pages
 
