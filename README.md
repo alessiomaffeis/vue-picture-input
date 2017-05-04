@@ -115,3 +115,6 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
 ## Contributions
 
 All contributions are welcome.
+
+Please follow the Javascript Standard Style guidelines:
+https://github.com/feross/standard/blob/master/RULES.md#javascript-standard-style
