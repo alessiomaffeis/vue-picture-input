@@ -121,8 +121,9 @@ export default {
       imageSelected: false,
       previewHeight: 0,
       previewWidth: 0,
-      previewRatio: 0,
       draggingOver: false,
+      canvasWidth: 0,
+      canvesHeight: 0,
       strings: {
         upload: '<p>Your device does not support file uploading.</p>',
         drag: 'Drag an image or <br>click here to select a file',
@@ -159,6 +160,9 @@ export default {
       this.fileTypes = this.accept.split(',')
       this.fileTypes = this.fileTypes.map(s => s.trim())
     }
+
+    this.canvasWidth = this.width
+    this.canvasHeight = this.height
   },
   beforeDestroy () {
     window.removeEventListener('resize', this.onResize)
@@ -172,14 +176,16 @@ export default {
       }
     },
     onResize () {
-      let previewRatio = this.previewRatio || this.width / this.height
+      this.resize()
+    },
+    resize () {
+      let previewRatio = this.canvasWidth / this.canvasHeight
       let newWidth = this.$refs.container.clientWidth
-      if (newWidth === this.containerWidth) {
-        return
-      }
+
       this.containerWidth = newWidth
-      this.previewWidth = Math.min(this.containerWidth - this.margin * 2, this.width)
+      this.previewWidth = Math.min(this.containerWidth - this.margin * 2, this.canvasWidth)
       this.previewHeight = this.previewWidth / previewRatio
+
       if (this.imageObject) {
         this.drawImage(this.imageObject)
       }
@@ -315,15 +321,14 @@ export default {
       this.$refs.previewCanvas.width = this.previewWidth * this.pixelRatio
       this.$emit('remove')
     },
-    rotateImage () {
-      this.previewRatio = this.height / this.width
+    rotateCanvas () {
+      const canvasWidth = this.canvasWidth
+      const canvasHeight = this.canvasHeight
 
-      if(this.previewWidth > this.previewHeight) {
-        this.previewRatio = this.width / this.height
-      }
+      this.canvasWidth = canvasHeight
+      this.canvasHeight = canvasWidth
 
-      this.previewHeight = this.previewWidth / this.previewRatio
-      this.drawImage(this.imageObject)
+      this.resize()
       this.$emit('rotate')
     },
     setOrientation (orientation) {
