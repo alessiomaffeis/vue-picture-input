@@ -26,7 +26,7 @@
       </div>
       <button v-if="imageSelected" @click.prevent="selectImage" :class="buttonClass"><em v-html="strings.change"></em></button>
       <button v-if="imageSelected && removable" @click.prevent="removeImage" :class="removeButtonClass"><em v-html="strings.remove"></em></button>
-      <button v-if="imageSelected && rotatable" @click.prevent="rotateCanvas" :class="rotateButtonClass"><em v-html="strings.rotate"></em></button>
+      <button v-if="imageSelected && rotatable" @click.prevent="rotateImage" :class="rotateButtonClass"><em v-html="strings.rotate"></em></button>
     </div>
     <div v-else>
       <button v-if="!imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.select }}</button>
@@ -93,6 +93,10 @@ export default {
       default: true
     },
     removable: {
+      type: Boolean,
+      default: false
+    },
+    autoRotate: {
       type: Boolean,
       default: false
     },
@@ -176,15 +180,7 @@ export default {
       }
     },
     onResize () {
-      this.resize()
-    },
-    resize () {
-      let previewRatio = this.canvasWidth / this.canvasHeight
-      let newWidth = this.$refs.container.clientWidth
-
-      this.containerWidth = newWidth
-      this.previewWidth = Math.min(this.containerWidth - this.margin * 2, this.canvasWidth)
-      this.previewHeight = this.previewWidth / previewRatio
+      this.resizeCanvas()
 
       if (this.imageObject) {
         this.drawImage(this.imageObject)
@@ -251,6 +247,15 @@ export default {
           this.$emit('change')
           this.imageObject = new Image()
           this.imageObject.onload = () => {
+            if (this.autoRotate) {
+              let canvasOrientation = this.getOrientation(this.canvasWidth, this.canvasHeight)
+              let imageOrientation = this.getOrientation(this.imageObject.width, this.imageObject.height)
+
+              if(canvasOrientation !== imageOrientation) {
+                this.rotateCanvas()
+              }
+            }
+
             this.drawImage(this.imageObject)
           }
           this.imageObject.src = this.image
@@ -321,14 +326,42 @@ export default {
       this.$refs.previewCanvas.width = this.previewWidth * this.pixelRatio
       this.$emit('remove')
     },
-    rotateCanvas () {
+    rotateImage () {
+      this.rotateCanvas()
+
+      if (this.imageObject) {
+        this.drawImage(this.imageObject)
+      }
+    },
+    resizeCanvas () {
+      let previewRatio = this.canvasWidth / this.canvasHeight
+      let newWidth = this.$refs.container.clientWidth
+
+      this.containerWidth = newWidth
+      this.previewWidth = Math.min(this.containerWidth - this.margin * 2, this.canvasWidth)
+      this.previewHeight = this.previewWidth / previewRatio
+    },
+    getOrientation (width, height) {
+      let orientation = 'square'
+
+      if (width > height) {
+        orientation = 'landscape'
+      } else if (width < height) {
+        orientation = 'portrait'
+      }
+
+      return orientation
+    },
+    switchCanvasOrientation () {
       const canvasWidth = this.canvasWidth
       const canvasHeight = this.canvasHeight
 
       this.canvasWidth = canvasHeight
       this.canvasHeight = canvasWidth
-
-      this.resize()
+    },
+    rotateCanvas () {
+      this.switchCanvasOrientation()
+      this.resizeCanvas()
       this.$emit('rotate')
     },
     setOrientation (orientation) {
