@@ -2,13 +2,13 @@
   <div ref="container" id="picture-input" class="picture-input">
     <div v-if="!supportsUpload" v-html="strings.upload"></div>
     <div v-else-if="supportsPreview">
-      <div class="preview-container" 
+      <div class="preview-container"
         :style="{maxWidth: previewWidth + 'px', height: previewHeight + 'px'}">
           <canvas ref="previewCanvas"
-            class="picture-preview" 
+            class="picture-preview"
             :class="computedClasses"
-            @drag.stop.prevent="" 
-            @dragover.stop.prevent="" 
+            @drag.stop.prevent=""
+            @dragover.stop.prevent=""
             @dragstart.stop.prevent="onDragStart"
             @dragenter.stop.prevent="onDragStart"
             @dragend.stop.prevent="onDragStop"
@@ -17,7 +17,7 @@
             @click.prevent="selectImage"
             :style="{height: previewHeight + 'px'}">
           </canvas>
-        <div v-if="!imageSelected" 
+        <div v-if="!imageSelected"
           class="picture-inner"
             :style="{top: -previewHeight + 'px', marginBottom: -previewHeight + 'px' }">
           <span v-if="supportsDragAndDrop" class="picture-inner-text" v-html="strings.drag"></span>
@@ -26,7 +26,7 @@
       </div>
       <button v-if="imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</button>
       <button v-if="imageSelected && removable" @click.prevent="removeImage" :class="removeButtonClass">{{ strings.remove }}</button>
-      <button v-if="imageSelected && rotatable" @click.prevent="rotateImage" :class="rotateButtonClass">{{ strings.rotate }}</button>
+      <button v-if="imageSelected && rotatable" @click.prevent="rotateCanvas" :class="rotateButtonClass">{{ strings.rotate }}</button>
     </div>
     <div v-else>
       <button v-if="!imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.select }}</button>
@@ -121,8 +121,9 @@ export default {
       imageSelected: false,
       previewHeight: 0,
       previewWidth: 0,
-      previewRatio: 0,
       draggingOver: false,
+      canvasWidth: 0,
+      canvesHeight: 0,
       strings: {
         upload: '<p>Your device does not support file uploading.</p>',
         drag: 'Drag an image or <br>click here to select a file',
@@ -159,6 +160,9 @@ export default {
       this.fileTypes = this.accept.split(',')
       this.fileTypes = this.fileTypes.map(s => s.trim())
     }
+
+    this.canvasWidth = this.width
+    this.canvasHeight = this.height
   },
   beforeDestroy () {
     window.removeEventListener('resize', this.onResize)
@@ -172,14 +176,16 @@ export default {
       }
     },
     onResize () {
-      let previewRatio = this.previewRatio || this.width / this.height
+      this.resize()
+    },
+    resize () {
+      let previewRatio = this.canvasWidth / this.canvasHeight
       let newWidth = this.$refs.container.clientWidth
-      if (newWidth === this.containerWidth) {
-        return
-      }
+
       this.containerWidth = newWidth
-      this.previewWidth = Math.min(this.containerWidth - this.margin * 2, this.width)
+      this.previewWidth = Math.min(this.containerWidth - this.margin * 2, this.canvasWidth)
       this.previewHeight = this.previewWidth / previewRatio
+
       if (this.imageObject) {
         this.drawImage(this.imageObject)
       }
@@ -314,15 +320,14 @@ export default {
       this.$refs.previewCanvas.width = this.previewWidth * this.pixelRatio
       this.$emit('remove')
     },
-    rotateImage () {
-      this.previewRatio = this.height / this.width
+    rotateCanvas () {
+      const canvasWidth = this.canvasWidth
+      const canvasHeight = this.canvasHeight
 
-      if(this.previewWidth > this.previewHeight) {
-        this.previewRatio = this.width / this.height
-      }
+      this.canvasWidth = canvasHeight
+      this.canvasHeight = canvasWidth
 
-      this.previewHeight = this.previewWidth / this.previewRatio
-      this.drawImage(this.imageObject)
+      this.resize()
       this.$emit('rotate')
     },
     setOrientation (orientation) {
@@ -440,7 +445,7 @@ export default {
   background-color: rgba(200,200,200,.25);
 }
 .picture-preview.dragging-over {
-  filter: brightness(0.5); 
+  filter: brightness(0.5);
 }
 .picture-inner {
   position: relative;
