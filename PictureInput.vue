@@ -332,7 +332,8 @@ export default {
         this.drawImage(this.imageObject)
       }
 
-      this.$emit('rotate')
+      let newOrientation = this.getOrientation(this.canvasWidth, this.canvasHeight)
+      this.$emit('rotate', newOrientation)
     },
     resizeCanvas () {
       let previewRatio = this.canvasWidth / this.canvasHeight
