@@ -85,7 +85,7 @@ export default {
       default: 'btn btn-secondary button secondary'
     },
     prefill: {
-      type: [String, Object],
+      type: [String, File],
       default: ''
     },
     crop: {
