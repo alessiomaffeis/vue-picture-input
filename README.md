@@ -86,7 +86,7 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
   Default value: 'btn btn-primary button'.
 - **removeButtonClass**: (string, optional) the class which will be applied to the 'Remove Photo' button.
   Default value: 'btn btn-secondary button secondary'.
-- **prefill**: (url, optional) use this to specify the path to a default image to prefill the input with. Default value: empty.
+- **prefill**: (image url or File object, optional) use this to specify the path to a default image (or a File object) to prefill the input with. Default value: empty.
 - **customStrings**: (object, optional) use this to provide one or more custom strings (see the example above). Here are the available strings and their default values:
 ```
   upload: '<p>Your device does not support file uploading.</p>', // HTML allowed
@@ -107,7 +107,6 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
   
 ## TODOs
 
-- Add support for multiple files
 - Client-side resizing and cropping
 - Demo GitHub pages
 
@@ -115,3 +114,6 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
 ## Contributions
 
 All contributions are welcome.
+
+Please follow the Javascript Standard Style guidelines:
+https://github.com/feross/standard/blob/master/RULES.md#javascript-standard-style
