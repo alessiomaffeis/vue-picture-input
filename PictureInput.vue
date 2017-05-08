@@ -181,7 +181,9 @@ export default {
     resize () {
       let previewRatio = this.canvasWidth / this.canvasHeight
       let newWidth = this.$refs.container.clientWidth
-
+      if (!this.rotatable && newWidth === this.containerWidth) {
+        return
+      }
       this.containerWidth = newWidth
       this.previewWidth = Math.min(this.containerWidth - this.margin * 2, this.canvasWidth)
       this.previewHeight = this.previewWidth / previewRatio
