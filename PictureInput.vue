@@ -127,7 +127,7 @@ export default {
       previewWidth: 0,
       draggingOver: false,
       canvasWidth: 0,
-      canvesHeight: 0,
+      canvasHeight: 0,
       strings: {
         upload: '<p>Your device does not support file uploading.</p>',
         drag: 'Drag an image or <br>click here to select a file',
