@@ -26,7 +26,7 @@
       </div>
       <button v-if="imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</button>
       <button v-if="imageSelected && removable" @click.prevent="removeImage" :class="removeButtonClass">{{ strings.remove }}</button>
-      <button v-if="imageSelected && rotatable" @click.prevent="rotateCanvas" :class="rotateButtonClass">{{ strings.rotate }}</button>
+      <button v-if="imageSelected && toggleAspectRatio && width !== height" @click.prevent="rotateCanvas" :class="aspectButtonClass">{{ strings.aspect }}</button>
     </div>
     <div v-else>
       <button v-if="!imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.select }}</button>
@@ -80,7 +80,7 @@ export default {
       type: String,
       default: 'btn btn-secondary button secondary'
     },
-    rotateButtonClass: {
+    aspectButtonClass: {
       type: String,
       default: 'btn btn-secondary button secondary'
     },
@@ -96,7 +96,7 @@ export default {
       type: Boolean,
       default: false
     },
-    rotatable: {
+    toggleAspectRatio: {
       type: Boolean,
       default: false
     },
@@ -129,7 +129,7 @@ export default {
         drag: 'Drag an image or <br>click here to select a file',
         tap: 'Tap here to select a photo <br>from your gallery',
         change: 'Change Photo',
-        rotate: 'Rotate Photo',
+        aspect: 'Landscape/Portrait',
         remove: 'Remove Photo',
         select: 'Select a Photo',
         selected: '<p>Photo successfully selected!</p>',
@@ -181,7 +181,7 @@ export default {
     resize () {
       let previewRatio = this.canvasWidth / this.canvasHeight
       let newWidth = this.$refs.container.clientWidth
-      if (!this.rotatable && newWidth === this.containerWidth) {
+      if (!this.toggleAspectRatio && newWidth === this.containerWidth) {
         return
       }
       this.containerWidth = newWidth
@@ -330,7 +330,7 @@ export default {
       this.canvasHeight = canvasWidth
 
       this.resize()
-      this.$emit('rotate')
+      this.$emit('aspectratiochange')
     },
     setOrientation (orientation) {
       this.rotate = false
