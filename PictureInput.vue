@@ -26,6 +26,7 @@
       </div>
       <button v-if="imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</button>
       <button v-if="imageSelected && removable" @click.prevent="removeImage" :class="removeButtonClass">{{ strings.remove }}</button>
+      <button v-if="imageSelected && toggleAspectRatio && width !== height" @click.prevent="rotateCanvas" :class="aspectButtonClass">{{ strings.aspect }}</button>
     </div>
     <div v-else>
       <button v-if="!imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.select }}</button>
@@ -79,6 +80,10 @@ export default {
       type: String,
       default: 'btn btn-secondary button secondary'
     },
+    aspectButtonClass: {
+      type: String,
+      default: 'btn btn-secondary button secondary'
+    },
     prefill: {
       type: [String, File],
       default: ''
@@ -88,6 +93,10 @@ export default {
       default: true
     },
     removable: {
+      type: Boolean,
+      default: false
+    },
+    toggleAspectRatio: {
       type: Boolean,
       default: false
     },
@@ -113,11 +122,14 @@ export default {
       previewHeight: 0,
       previewWidth: 0,
       draggingOver: false,
+      canvasWidth: 0,
+      canvasHeight: 0,
       strings: {
         upload: '<p>Your device does not support file uploading.</p>',
         drag: 'Drag an image or <br>click here to select a file',
         tap: 'Tap here to select a photo <br>from your gallery',
         change: 'Change Photo',
+        aspect: 'Landscape/Portrait',
         remove: 'Remove Photo',
         select: 'Select a Photo',
         selected: '<p>Photo successfully selected!</p>',
@@ -148,6 +160,9 @@ export default {
       this.fileTypes = this.accept.split(',')
       this.fileTypes = this.fileTypes.map(s => s.trim())
     }
+
+    this.canvasWidth = this.width
+    this.canvasHeight = this.height
   },
   beforeDestroy () {
     window.removeEventListener('resize', this.onResize)
@@ -161,14 +176,18 @@ export default {
       }
     },
     onResize () {
-      let previewRatio = this.width / this.height
+      this.resize()
+    },
+    resize () {
+      let previewRatio = this.canvasWidth / this.canvasHeight
       let newWidth = this.$refs.container.clientWidth
-      if (newWidth === this.containerWidth) {
+      if (!this.toggleAspectRatio && newWidth === this.containerWidth) {
         return
       }
       this.containerWidth = newWidth
-      this.previewWidth = Math.min(this.containerWidth - this.margin * 2, this.width)
+      this.previewWidth = Math.min(this.containerWidth - this.margin * 2, this.canvasWidth)
       this.previewHeight = this.previewWidth / previewRatio
+
       if (this.imageObject) {
         this.drawImage(this.imageObject)
       }
@@ -303,6 +322,16 @@ export default {
       this.$refs.previewCanvas.style.backgroundColor = 'rgba(200,200,200,.25)'
       this.$refs.previewCanvas.width = this.previewWidth * this.pixelRatio
       this.$emit('remove')
+    },
+    rotateCanvas () {
+      const canvasWidth = this.canvasWidth
+      const canvasHeight = this.canvasHeight
+
+      this.canvasWidth = canvasHeight
+      this.canvasHeight = canvasWidth
+
+      this.resize()
+      this.$emit('aspectratiochange')
     },
     setOrientation (orientation) {
       this.rotate = false
