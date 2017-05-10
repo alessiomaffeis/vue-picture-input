@@ -26,7 +26,7 @@
       </div>
       <button v-if="imageSelected" @click.prevent="selectImage" :class="buttonClass"><em v-html="strings.change"></em></button>
       <button v-if="imageSelected && removable" @click.prevent="removeImage" :class="removeButtonClass"><em v-html="strings.remove"></em></button>
-      <button v-if="imageSelected && rotatable" @click.prevent="rotateImage" :class="rotateButtonClass"><em v-html="strings.rotate"></em></button>
+      <button v-if="imageSelected && toggleAspectRatio && width !== height" @click.prevent="rotateCanvas" :class="aspectButtonClass"><em v-html="strings.aspect"></em></button>
     </div>
     <div v-else>
       <button v-if="!imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.select }}</button>
@@ -80,7 +80,7 @@ export default {
       type: String,
       default: 'btn btn-secondary button secondary'
     },
-    rotateButtonClass: {
+    aspectButtonClass: {
       type: String,
       default: 'btn btn-secondary button secondary'
     },
@@ -96,11 +96,11 @@ export default {
       type: Boolean,
       default: false
     },
-    autoRotate: {
+    autoToggleAspectRatio: {
       type: Boolean,
       default: false
     },
-    rotatable: {
+    toggleAspectRatio: {
       type: Boolean,
       default: false
     },
@@ -133,7 +133,7 @@ export default {
         drag: 'Drag an image or <br>click here to select a file',
         tap: 'Tap here to select a photo <br>from your gallery',
         change: 'Change Photo',
-        rotate: 'Rotate Photo',
+        aspect: 'Landscape/Portrait',
         remove: 'Remove Photo',
         select: 'Select a Photo',
         selected: '<p>Photo successfully selected!</p>',
@@ -247,7 +247,7 @@ export default {
           this.$emit('change')
           this.imageObject = new Image()
           this.imageObject.onload = () => {
-            if (this.autoRotate) {
+            if (this.autoToggleAspectRatio) {
               let canvasOrientation = this.getOrientation(this.canvasWidth, this.canvasHeight)
               let imageOrientation = this.getOrientation(this.imageObject.width, this.imageObject.height)
 
@@ -333,12 +333,15 @@ export default {
         this.drawImage(this.imageObject)
       }
 
-      this.$emit('rotate')
+      let newOrientation = this.getOrientation(this.canvasWidth, this.canvasHeight)
+      this.$emit('aspectratiochange', newOrientation)
     },
     resizeCanvas () {
       let previewRatio = this.canvasWidth / this.canvasHeight
       let newWidth = this.$refs.container.clientWidth
-
+      if (!this.toggleAspectRatio && newWidth === this.containerWidth) {
+        return
+      }
       this.containerWidth = newWidth
       this.previewWidth = Math.min(this.containerWidth - this.margin * 2, this.canvasWidth)
       this.previewHeight = this.previewWidth / previewRatio
