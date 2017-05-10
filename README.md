@@ -87,8 +87,8 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
 - **removeButtonClass**: (string, optional) the class which will be applied to the 'Remove Photo' button.
   Default value: 'btn btn-secondary button secondary'.
 - **prefill**: (image url or File object, optional) use this to specify the path to a default image (or a File object) to prefill the input with. Default value: empty.
-- **toggleAspectRatio** (boolean, optional) set *:toggleAspectRatio="true"* to show a button for toggling the canvas aspect ratio (Landscape/Portrait) on a non-square canvas. Default value: false.
-- **autoToggleAspectRatio** (boolean, optional) set *:autoToggleAspectRatio="true"* to enable automatic canvas aspect ratio change to match the selected picture's. Default value: false.
+- **toggleAspectRatio**: (boolean, optional) set *:toggleAspectRatio="true"* to show a button for toggling the canvas aspect ratio (Landscape/Portrait) on a non-square canvas. Default value: false.
+- **autoToggleAspectRatio**: (boolean, optional) set *:autoToggleAspectRatio="true"* to enable automatic canvas aspect ratio change to match the selected picture's. Default value: false.
 - **aspectButtonClass**: (string, optional) the class which will be applied to the 'Landscape/Portrait' button.
   Default value: 'btn btn-secondary button secondary'.
 - **customStrings**: (object, optional) use this to provide one or more custom strings (see the example above). Here are the available strings and their default values:
