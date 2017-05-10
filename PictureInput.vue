@@ -26,7 +26,7 @@
       </div>
       <button v-if="imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</button>
       <button v-if="imageSelected && removable" @click.prevent="removeImage" :class="removeButtonClass">{{ strings.remove }}</button>
-      <button v-if="imageSelected && toggleAspectRatio && width !== height" @click.prevent="rotateCanvas" :class="aspectButtonClass">{{ strings.aspect }}</button>
+      <button v-if="imageSelected && toggleAspectRatio && width !== height" @click.prevent="rotateImage" :class="aspectButtonClass">{{ strings.aspect }}</button>
     </div>
     <div v-else>
       <button v-if="!imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.select }}</button>
@@ -181,21 +181,6 @@ export default {
     },
     onResize () {
       this.resizeCanvas()
-
-      if (this.imageObject) {
-        this.drawImage(this.imageObject)
-      }
-    },
-    resize () {
-      let previewRatio = this.canvasWidth / this.canvasHeight
-      let newWidth = this.$refs.container.clientWidth
-      if (!this.toggleAspectRatio && newWidth === this.containerWidth) {
-        return
-      }
-      this.containerWidth = newWidth
-      this.previewWidth = Math.min(this.containerWidth - this.margin * 2, this.canvasWidth)
-      this.previewHeight = this.previewWidth / previewRatio
->>>>>>> master
 
       if (this.imageObject) {
         this.drawImage(this.imageObject)
