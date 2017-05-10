@@ -251,7 +251,7 @@ export default {
               let canvasOrientation = this.getOrientation(this.canvasWidth, this.canvasHeight)
               let imageOrientation = this.getOrientation(this.imageObject.width, this.imageObject.height)
 
-              if(canvasOrientation !== imageOrientation) {
+              if (canvasOrientation !== imageOrientation) {
                 this.rotateCanvas()
               }
             }
