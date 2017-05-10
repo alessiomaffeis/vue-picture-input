@@ -26,7 +26,7 @@
       </div>
       <button v-if="imageSelected" @click.prevent="selectImage" :class="buttonClass"><em v-html="strings.change"></em></button>
       <button v-if="imageSelected && removable" @click.prevent="removeImage" :class="removeButtonClass"><em v-html="strings.remove"></em></button>
-      <button v-if="imageSelected && toggleAspectRatio && width !== height" @click.prevent="rotateCanvas" :class="aspectButtonClass"><em v-html="strings.aspect"></em></button>
+      <button v-if="imageSelected && toggleAspectRatio && width !== height" @click.prevent="rotateImage" :class="aspectButtonClass"><em v-html="strings.aspect"></em></button>
     </div>
     <div v-else>
       <button v-if="!imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.select }}</button>
