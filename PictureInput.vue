@@ -24,9 +24,9 @@
           <span v-else class="picture-inner-text" v-html="strings.tap"></span>
         </div>
       </div>
-      <button v-if="imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</button>
-      <button v-if="imageSelected && removable" @click.prevent="removeImage" :class="removeButtonClass">{{ strings.remove }}</button>
-      <button v-if="imageSelected && toggleAspectRatio && width !== height" @click.prevent="rotateImage" :class="aspectButtonClass">{{ strings.aspect }}</button>
+      <button v-if="imageSelected" @click.prevent="selectImage" :class="buttonClass"><em v-html="strings.change"></em></button>
+      <button v-if="imageSelected && removable" @click.prevent="removeImage" :class="removeButtonClass"><em v-html="strings.remove"></em></button>
+      <button v-if="imageSelected && toggleAspectRatio && width !== height" @click.prevent="rotateImage" :class="aspectButtonClass"><em v-html="strings.aspect"></em></button>
     </div>
     <div v-else>
       <button v-if="!imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.select }}</button>
@@ -263,6 +263,52 @@ export default {
         reader.readAsDataURL(file)
       })
     },
+    drawImageProp(ctx, img, x, y, w, h, offsetX, offsetY) {
+      if (arguments.length === 2) {
+        x = y = 0;
+        w = ctx.canvas.width
+        h = ctx.canvas.height
+      }
+
+      // default offset is center
+      offsetX = typeof offsetX === "number" ? offsetX : 0.5
+      offsetY = typeof offsetY === "number" ? offsetY : 0.5
+
+      // keep bounds [0.0, 1.0]
+      if (offsetX < 0) offsetX = 0
+      if (offsetY < 0) offsetY = 0
+      if (offsetX > 1) offsetX = 1
+      if (offsetY > 1) offsetY = 1
+
+      var iw = img.width,
+        ih = img.height,
+        r = Math.min(w / iw, h / ih),
+        nw = iw * r,   // new prop. width
+        nh = ih * r,   // new prop. height
+        cx, cy, cw, ch, ar = 1
+
+      // decide which gap to fill
+      if (nw < w) ar = w / nw
+      if (Math.abs(ar - 1) < 1e-14 && nh < h) ar = h / nh // updated
+      nw *= ar
+      nh *= ar
+
+      // calc source rectangle
+      cw = iw / (nw / w)
+      ch = ih / (nh / h)
+
+      cx = (iw - cw) * offsetX
+      cy = (ih - ch) * offsetY
+
+      // make sure source rectangle is valid
+      if (cx < 0) cx = 0
+      if (cy < 0) cy = 0
+      if (cw > iw) cw = iw
+      if (ch > ih) ch = ih
+
+      // fill image in dest. rectangle
+      ctx.drawImage(img, cx, cy, cw, ch,  x, y, w, h)
+    },
     drawImage (image) {
       this.imageWidth = image.width
       this.imageHeight = image.height
@@ -301,11 +347,8 @@ export default {
         offsetX = -scaledWidth / 2
         offsetY = -scaledHeight / 2
       }
-      this.context.drawImage(image,
-        offsetX * this.pixelRatio,
-        offsetY * this.pixelRatio,
-        scaledWidth * this.pixelRatio,
-        scaledHeight * this.pixelRatio)
+
+      this.drawImageProp(this.context, image)
     },
     selectImage () {
       this.$refs.fileInput.click()
