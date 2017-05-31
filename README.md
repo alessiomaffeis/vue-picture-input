@@ -89,6 +89,7 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
 - **prefill**: (image url or File object, optional) use this to specify the path to a default image (or a File object) to prefill the input with. Default value: empty.
 - **toggleAspectRatio**: (boolean, optional) set *:toggleAspectRatio="true"* to show a button for toggling the canvas aspect ratio (Landscape/Portrait) on a non-square canvas. Default value: false.
 - **autoToggleAspectRatio**: (boolean, optional) set *:autoToggleAspectRatio="true"* to enable automatic canvas aspect ratio change to match the selected picture's. Default value: false.
+- **changeOnClick**: (boolean, optional) set *:changeOnClick="true"* to open image selector when user click on the image. Default value: true.
 - **aspectButtonClass**: (string, optional) the class which will be applied to the 'Landscape/Portrait' button.
   Default value: 'btn btn-secondary button secondary'.
 - **customStrings**: (object, optional) use this to provide one or more custom strings (see the example above). Here are the available strings and their default values:
@@ -109,6 +110,7 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
 
 - **change**: emitted on (successful) picture change. If you need to access the underlying image from the parent component, add a *ref* attribute to picture-input (see the example above). You may want to use *this.$refs.pictureInput.image* (Base64 Data URI string) or *this.$refs.pictureInput.file* (File Object)
 - **remove**: emitted on picture remove.
+- **click**: emitted on picture click.
   
 ## TODOs
 

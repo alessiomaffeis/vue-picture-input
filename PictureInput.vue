@@ -14,7 +14,7 @@
             @dragend.stop.prevent="onDragStop"
             @dragleave.stop.prevent="onDragStop"
             @drop.stop.prevent="onFileDrop"
-            @click.prevent="selectImage"
+            @click.prevent="onClick"
             :style="{height: previewHeight + 'px'}">
           </canvas>
         <div v-if="!imageSelected"
@@ -104,6 +104,10 @@ export default {
       type: Boolean,
       default: false
     },
+    changeOnClick: {
+      type: Boolean,
+      default: true
+    },
     customStrings: {
       type: Object,
       default: () => {
@@ -178,6 +182,18 @@ export default {
           this.strings[s] = this.customStrings[s]
         }
       }
+    },
+    onClick () {
+      if (!this.imageSelected) {
+        this.selectImage()
+        return
+      }
+
+      if (this.changeOnClick) {
+        this.selectImage()
+      }
+
+      this.$emit('click')
     },
     onResize () {
       this.resizeCanvas()
