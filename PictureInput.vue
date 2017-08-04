@@ -3,7 +3,7 @@
     <div v-if="!supportsUpload" v-html="strings.upload"></div>
     <div v-else-if="supportsPreview">
       <div class="preview-container"
-        :style="{maxWidth: previewWidth + 'px', height: previewHeight + 'px'}">
+        :style="{maxWidth: previewWidth + 'px', height: previewHeight + 'px', borderRadius: radius + '%'}">
           <canvas ref="previewCanvas"
             class="picture-preview"
             :class="computedClasses"
@@ -17,9 +17,9 @@
             @click.prevent="selectImage"
             :style="{height: previewHeight + 'px'}">
           </canvas>
-        <div v-if="!imageSelected"
+        <div v-if="!imageSelected && !plain"
           class="picture-inner"
-            :style="{top: -previewHeight + 'px', marginBottom: -previewHeight + 'px' }">
+            :style="{top: -previewHeight + 'px', marginBottom: -previewHeight + 'px', fontSize: 0.04 * previewWidth + 'px', borderRadius: radius + '%'}">
           <span v-if="supportsDragAndDrop" class="picture-inner-text" v-html="strings.drag"></span>
           <span v-else class="picture-inner-text" v-html="strings.tap"></span>
         </div>
@@ -92,6 +92,10 @@ export default {
       type: Boolean,
       default: true
     },
+    radius: {
+      type: [String, Number],
+      default: 0
+    },
     removable: {
       type: Boolean,
       default: false
@@ -101,6 +105,10 @@ export default {
       default: false
     },
     toggleAspectRatio: {
+      type: Boolean,
+      default: false
+    },
+    plain: {
       type: Boolean,
       default: false
     },
@@ -521,13 +529,5 @@ button {
 }
 input[type=file] {
   display: none;
-}
-@media (max-width: 767px) {
-  .picture-inner {
-    padding: 2vw;
-  }
-  .picture-inner .picture-inner-text {
-    font-size: 5vw;
-  }
 }
 </style>
