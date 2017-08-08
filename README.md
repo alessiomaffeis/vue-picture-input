@@ -94,6 +94,7 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
 - **autoToggleAspectRatio**: (boolean, optional) set *:autoToggleAspectRatio="true"* to enable automatic canvas aspect ratio change to match the selected picture's. Default value: false.
 - **aspectButtonClass**: (string, optional) the class which will be applied to the 'Landscape/Portrait' button.
   Default value: 'btn btn-secondary button secondary'.
+- **zIndex**: (number, optional) The base z-index value. In case of issues with your layout, change *:zIndex="..."* to a value that suits you better. Default value: 10000.
 - **customStrings**: (object, optional) use this to provide one or more custom strings (see the example above). Here are the available strings and their default values:
 ```
   upload: '<p>Your device does not support file uploading.</p>', // HTML allowed
