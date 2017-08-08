@@ -15,11 +15,11 @@
             @dragleave.stop.prevent="onDragStop"
             @drop.stop.prevent="onFileDrop"
             @click.prevent="selectImage"
-            :style="{height: previewHeight + 'px'}">
+            :style="{height: previewHeight + 'px', zIndex: zIndex + 1 }">
           </canvas>
         <div v-if="!imageSelected && !plain"
           class="picture-inner"
-            :style="{top: -previewHeight + 'px', marginBottom: -previewHeight + 'px', fontSize: fontSize, borderRadius: radius + '%'}">
+            :style="{top: -previewHeight + 'px', marginBottom: -previewHeight + 'px', fontSize: fontSize, borderRadius: radius + '%', zIndex: zIndex + 2}">
           <span v-if="supportsDragAndDrop" class="picture-inner-text" v-html="strings.drag"></span>
           <span v-else class="picture-inner-text" v-html="strings.tap"></span>
         </div>
@@ -111,6 +111,10 @@ export default {
     plain: {
       type: Boolean,
       default: false
+    },
+    zIndex: {
+      type: Number,
+      default: 10000
     },
     customStrings: {
       type: Object,
