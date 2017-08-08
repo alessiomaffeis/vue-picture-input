@@ -80,7 +80,6 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
 - **margin**: (pixels, optional) the margin around the preview container. Default value: 0.
 - **radius**: (percentage, optional) The border-radius value for the container. Set *radius="50"* to get a circular container. Default value: 0.
 - **plain**: (boolean, optional) Set *:plain="true"* to remove the inner border and text. Default value: false.
-- **zIndex**: (number, optional) The base z-index value. Change *:zIndex="..."* to a value that suits you better. Default value: 10000.
 - **accept**: (media type, optional) the accepted image type(s), e.g. image/jpeg, image/gif, etc. Default value: 'image/*'. 
 - **size**: (MB, optional) the maximum accepted file size in megabytes.
 - **removable**: (boolean, optional) set *:removable="true"* if you want to display a "Remove Photo" button. Default value: false.
