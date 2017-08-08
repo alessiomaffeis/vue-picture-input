@@ -19,7 +19,7 @@
           </canvas>
         <div v-if="!imageSelected && !plain"
           class="picture-inner"
-            :style="{top: -previewHeight + 'px', marginBottom: -previewHeight + 'px', fontSize: 0.04 * previewWidth + 'px', borderRadius: radius + '%'}">
+            :style="{top: -previewHeight + 'px', marginBottom: -previewHeight + 'px', fontSize: fontSize, borderRadius: radius + '%'}">
           <span v-if="supportsDragAndDrop" class="picture-inner-text" v-html="strings.drag"></span>
           <span v-else class="picture-inner-text" v-html="strings.tap"></span>
         </div>
@@ -474,6 +474,9 @@ export default {
       const classObject = {}
       classObject['dragging-over'] = this.draggingOver
       return classObject
+    },
+    fontSize () {
+      return Math.min(0.04 * this.previewWidth, 21) + 'px'
     }
   }
 }
