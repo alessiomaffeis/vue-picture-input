@@ -78,6 +78,8 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
 - **width, height**: (pixels, optional) the maximum width and height of the preview container. The picture will be resized and centered to cover this area. If not specified, the preview container will expand to full width, 1:1 square ratio.
 - **crop**: (boolean, optional) set *:crop="false"* if you wish to disable cropping. The image will be resized and centered in order to be fully contained in the preview container. Default value: true.
 - **margin**: (pixels, optional) the margin around the preview container. Default value: 0.
+- **radius**: (percentage, optional) The border-radius value for the container. Set *radius="50"* to get a circular container. Default value: 0.
+- **plain**: (boolean, optional) Set *:plain="true"* to remove the inner border and text. Default value: false.
 - **accept**: (media type, optional) the accepted image type(s), e.g. image/jpeg, image/gif, etc. Default value: 'image/*'. 
 - **size**: (MB, optional) the maximum accepted file size in megabytes.
 - **removable**: (boolean, optional) set *:removable="true"* if you want to display a "Remove Photo" button. Default value: false.
@@ -87,11 +89,18 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
 - **removeButtonClass**: (string, optional) the class which will be applied to the 'Remove Photo' button.
   Default value: 'btn btn-secondary button secondary'.
 - **prefill**: (image url or File object, optional) use this to specify the path to a default image (or a File object) to prefill the input with. Default value: empty.
+- **prefillOptions**: (object, optional) use this if you prefill with a data uri scheme to specify a file name and a media or file type:
+```
+  fileName: (string, optional) the file name
+  fileType: (string, optional) the file type of the image, i.e. "png", or
+  mediaType: (string, optional) the media type of the image, i.e. "image/png"
+```
 - **toggleAspectRatio**: (boolean, optional) set *:toggleAspectRatio="true"* to show a button for toggling the canvas aspect ratio (Landscape/Portrait) on a non-square canvas. Default value: false.
 - **autoToggleAspectRatio**: (boolean, optional) set *:autoToggleAspectRatio="true"* to enable automatic canvas aspect ratio change to match the selected picture's. Default value: false.
 - **changeOnClick**: (boolean, optional) set *:changeOnClick="true"* to open image selector when user click on the image. Default value: true.
 - **aspectButtonClass**: (string, optional) the class which will be applied to the 'Landscape/Portrait' button.
   Default value: 'btn btn-secondary button secondary'.
+- **zIndex**: (number, optional) The base z-index value. In case of issues with your layout, change *:zIndex="..."* to a value that suits you better. Default value: 10000.
 - **customStrings**: (object, optional) use this to provide one or more custom strings (see the example above). Here are the available strings and their default values:
 ```
   upload: '<p>Your device does not support file uploading.</p>', // HTML allowed
@@ -120,7 +129,7 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
 
 ## Contributions
 
-All contributions are welcome.
+All contributions are welcome, as long as they are within the scope of the project.
 
 Please follow the Javascript Standard Style guidelines:
 https://github.com/feross/standard/blob/master/RULES.md#javascript-standard-style

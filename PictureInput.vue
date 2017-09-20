@@ -3,7 +3,7 @@
     <div v-if="!supportsUpload" v-html="strings.upload"></div>
     <div v-else-if="supportsPreview">
       <div class="preview-container"
-        :style="{maxWidth: previewWidth + 'px', height: previewHeight + 'px'}">
+        :style="{maxWidth: previewWidth + 'px', height: previewHeight + 'px', borderRadius: radius + '%'}">
           <canvas ref="previewCanvas"
             class="picture-preview"
             :class="computedClasses"
@@ -15,11 +15,11 @@
             @dragleave.stop.prevent="onDragStop"
             @drop.stop.prevent="onFileDrop"
             @click.prevent="onClick"
-            :style="{height: previewHeight + 'px'}">
+            :style="{height: previewHeight + 'px', zIndex: zIndex + 1 }">
           </canvas>
-        <div v-if="!imageSelected"
+        <div v-if="!imageSelected && !plain"
           class="picture-inner"
-            :style="{top: -previewHeight + 'px', marginBottom: -previewHeight + 'px' }">
+            :style="{top: -previewHeight + 'px', marginBottom: -previewHeight + 'px', fontSize: fontSize, borderRadius: radius + '%', zIndex: zIndex + 2}">
           <span v-if="supportsDragAndDrop" class="picture-inner-text" v-html="strings.drag"></span>
           <span v-else class="picture-inner-text" v-html="strings.tap"></span>
         </div>
@@ -88,9 +88,17 @@ export default {
       type: [String, File],
       default: ''
     },
+    prefillOptions: {
+      type: Object,
+      default: {}
+    },
     crop: {
       type: Boolean,
       default: true
+    },
+    radius: {
+      type: [String, Number],
+      default: 0
     },
     removable: {
       type: Boolean,
@@ -108,6 +116,14 @@ export default {
       type: Boolean,
       default: true
     },
+    plain: {
+      type: Boolean,
+      default: false
+    },
+    zIndex: {
+      type: Number,
+      default: 10000
+    },
     customStrings: {
       type: Object,
       default: () => {
@@ -118,7 +134,7 @@ export default {
   watch: {
     prefill () {
       if (this.prefill) {
-        this.preloadImage(this.prefill)
+        this.preloadImage(this.prefill, this.prefillOptions)
       } else {
         this.removeImage()
       }
@@ -149,7 +165,7 @@ export default {
   mounted () {
     this.updateStrings()
     if (this.prefill) {
-      this.preloadImage(this.prefill)
+      this.preloadImage(this.prefill, this.prefillOptions)
     }
 
     this.$nextTick(() => {
@@ -429,7 +445,8 @@ export default {
       }
       reader.readAsArrayBuffer(file.slice(0, 65536))
     },
-    preloadImage (source) {
+    preloadImage (source, options) {
+      options = Object.assign({}, options)
       if (typeof source === 'object') {
         this.imageSelected = true
         this.image = ''
@@ -444,17 +461,17 @@ export default {
       headers.append('Accept', 'image/*')
       fetch(source, {
         method: 'GET',
-        mode: 'same-origin',
+        mode: 'cors',
         headers: headers
       }).then(response => {
         return response.blob()
       })
       .then(imageBlob => {
         let e = { target: { files: [] } }
-        const fileName = source.split('/').slice(-1)[0]
-        let fileType = fileName.split('.').slice(-1)[0]
-        fileType = fileType.replace('jpg', 'jpeg')
-        e.target.files[0] = new File([imageBlob], fileName, { type: 'image/' + fileType })
+        const fileName = options.fileName || source.split('/').slice(-1)[0]
+        let mediaType = options.mediaType || ('image/' + (options.fileType || fileName.split('.').slice(-1)[0]))
+        mediaType = mediaType.replace('jpg', 'jpeg')
+        e.target.files[0] = new File([imageBlob], fileName, { type: mediaType })
         this.onFileChange(e)
       })
       .catch(err => {
@@ -482,6 +499,9 @@ export default {
       const classObject = {}
       classObject['dragging-over'] = this.draggingOver
       return classObject
+    },
+    fontSize () {
+      return Math.min(0.04 * this.previewWidth, 21) + 'px'
     }
   }
 }
@@ -504,7 +524,7 @@ export default {
   width: 100%;
   height: 100%;
   position: relative;
-  z-index: 1;
+  z-index: 10001;
   box-sizing: border-box;
   background-color: rgba(200,200,200,.25);
 }
@@ -513,7 +533,7 @@ export default {
 }
 .picture-inner {
   position: relative;
-  z-index: 2;
+  z-index: 10002;
   pointer-events: none;
   box-sizing: border-box;
   margin: 1em auto;
@@ -537,13 +557,5 @@ button {
 }
 input[type=file] {
   display: none;
-}
-@media (max-width: 767px) {
-  .picture-inner {
-    padding: 2vw;
-  }
-  .picture-inner .picture-inner-text {
-    font-size: 5vw;
-  }
 }
 </style>
