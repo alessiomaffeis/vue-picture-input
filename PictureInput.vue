@@ -88,6 +88,10 @@ export default {
       type: [String, File],
       default: ''
     },
+    prefillOptions: {
+      type: Object,
+      default: {}
+    },
     crop: {
       type: Boolean,
       default: true
@@ -126,7 +130,7 @@ export default {
   watch: {
     prefill () {
       if (this.prefill) {
-        this.preloadImage(this.prefill)
+        this.preloadImage(this.prefill, this.prefillOptions)
       } else {
         this.removeImage()
       }
@@ -157,7 +161,7 @@ export default {
   mounted () {
     this.updateStrings()
     if (this.prefill) {
-      this.preloadImage(this.prefill)
+      this.preloadImage(this.prefill, this.prefillOptions)
     }
 
     this.$nextTick(() => {
@@ -425,7 +429,8 @@ export default {
       }
       reader.readAsArrayBuffer(file.slice(0, 65536))
     },
-    preloadImage (source) {
+    preloadImage (source, options) {
+      options = Object.assign({}, options)
       if (typeof source === 'object') {
         this.imageSelected = true
         this.image = ''
@@ -447,10 +452,10 @@ export default {
       })
       .then(imageBlob => {
         let e = { target: { files: [] } }
-        const fileName = source.split('/').slice(-1)[0]
-        let fileType = fileName.split('.').slice(-1)[0]
-        fileType = fileType.replace('jpg', 'jpeg')
-        e.target.files[0] = new File([imageBlob], fileName, { type: 'image/' + fileType })
+        const fileName = options.fileName || source.split('/').slice(-1)[0]
+        let mediaType = options.mediaType || ('image/' + (options.fileType || fileName.split('.').slice(-1)[0]))
+        mediaType = mediaType.replace('jpg', 'jpeg')
+        e.target.files[0] = new File([imageBlob], fileName, { type: mediaType })
         this.onFileChange(e)
       })
       .catch(err => {
