@@ -90,7 +90,9 @@ export default {
     },
     prefillOptions: {
       type: Object,
-      default: {}
+      default: () => {
+        return {}
+      }
     },
     crop: {
       type: Boolean,
