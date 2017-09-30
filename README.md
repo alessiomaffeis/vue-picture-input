@@ -102,7 +102,9 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
   Default value: 'btn btn-secondary button secondary'.
 - **zIndex**: (number, optional) The base z-index value. In case of issues with your layout, change *:zIndex="..."* to a value that suits you better. Default value: 10000.
 - **customStrings**: (object, optional) use this to provide one or more custom strings (see the example above). Here are the available strings and their default values:
-```
+
+```js
+{
   upload: '<p>Your device does not support file uploading.</p>', // HTML allowed
   drag: 'Drag an image or <br>click here to select a file', // HTML allowed
   tap: 'Tap here to select a photo <br>from your gallery', // HTML allowed
@@ -111,8 +113,9 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
   select: 'Select a Photo', // Text only
   selected: '<p>Photo successfully selected!</p>', // HTML allowed
   fileSize: 'The file size exceeds the limit', // Text only
-  fileType: 'This file type is not supported.' // Text only
+  fileType: 'This file type is not supported.', // Text only
   aspect: 'Landscape/Portrait' // Text only
+}
 ```
    
 ## Events
