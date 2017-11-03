@@ -328,8 +328,8 @@ export default {
       let offsetY = 0
       let scaledWidth = this.previewWidth
       let scaledHeight = this.previewHeight
+      const previewRatio = this.previewWidth / this.previewHeight
       if (this.crop) {
-        const previewRatio = this.previewWidth / this.previewHeight
         if (this.imageRatio >= previewRatio) {
           scaledWidth = scaledHeight * this.imageRatio
           offsetX = (this.previewWidth - scaledWidth) / 2
@@ -338,7 +338,7 @@ export default {
           offsetY = (this.previewHeight - scaledHeight) / 2
         }
       } else {
-        if (this.imageRatio > 1) {
+        if (this.imageRatio >= previewRatio) {
           scaledHeight = scaledWidth / this.imageRatio
           offsetY = (this.previewHeight - scaledHeight) / 2
         } else {
