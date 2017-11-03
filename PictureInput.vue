@@ -562,7 +562,7 @@ export default {
   pointer-events: none;
   box-sizing: border-box;
   margin: 1em auto;
-  padding: 3em;
+  padding: 0.5em;
   border: .3em dashed rgba(66,66,66,.15);
   border-radius: 8px;
   width: calc(100% - 2.5em);
