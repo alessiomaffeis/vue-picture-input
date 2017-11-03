@@ -193,8 +193,8 @@ export default {
 
     this.canvasWidth = this.width
     this.canvasHeight = this.height
-    
-    this.$on("error", (error) => {
+
+    this.$on('error', (error) => {
       if (this.alertOnError) {
         alert(error.msg)
       }
@@ -252,8 +252,8 @@ export default {
         return
       }
       if (files[0].size <= 0 || files[0].size > this.size * 1024 * 1024) {
-        this.$emit("error", {
-          type: "fileSize",
+        this.$emit('error', {
+          type: 'fileSize',
           fileSize: files[0].size,
           fileType: files[0].type,
           fileName: files[0].name,
@@ -270,15 +270,15 @@ export default {
       this.fileSize = files[0].size
       this.fileModified = files[0].lastModified
       this.fileType = files[0].type
-      
+
       if (this.accept === 'image/*') {
         if (files[0].type.substr(0, 6) !== 'image/') {
           return
         }
       } else {
         if (this.fileTypes.indexOf(files[0].type) === -1) {
-          this.$emit("error", {
-            type: "fileType",
+          this.$emit('error', {
+            type: 'fileType',
             fileSize: files[0].size,
             fileType: files[0].type,
             fileName: files[0].name,
