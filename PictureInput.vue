@@ -24,7 +24,7 @@
           <span v-else class="picture-inner-text" v-html="strings.tap"></span>
         </div>
       </div>
-      <button v-if="imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</button>
+      <button v-if="imageSelected && !hideChangeButton" @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</button>
       <button v-if="imageSelected && removable" @click.prevent="removeImage" :class="removeButtonClass">{{ strings.remove }}</button>
       <button v-if="imageSelected && toggleAspectRatio && width !== height" @click.prevent="rotateImage" :class="aspectButtonClass">{{ strings.aspect }}</button>
     </div>
@@ -32,7 +32,7 @@
       <button v-if="!imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.select }}</button>
       <div v-else>
         <div v-html="strings.selected"></div>
-        <button @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</button>
+        <button v-if="!hideChangeButton" @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</button>
         <button v-if="removable" @click.prevent="removeImage" :class="removeButtonClass">{{ strings.remove }}</button>
       </div>
     </div>
@@ -103,6 +103,10 @@ export default {
       default: 0
     },
     removable: {
+      type: Boolean,
+      default: false
+    },
+    hideChangeButton: {
       type: Boolean,
       default: false
     },
