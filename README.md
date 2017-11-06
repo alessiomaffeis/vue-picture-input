@@ -72,6 +72,7 @@ export default {
 ## Example project
 
 You can find an example project here: https://github.com/alessiomaffeis/vue-picture-input-example
+
 Demo: https://alessiomaffeis.github.io/vue-picture-input-example/ 
 
 ## Props
