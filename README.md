@@ -83,6 +83,7 @@ You can find an example project here: https://github.com/alessiomaffeis/vue-pict
 - **accept**: (media type, optional) the accepted image type(s), e.g. image/jpeg, image/gif, etc. Default value: 'image/*'. 
 - **size**: (MB, optional) the maximum accepted file size in megabytes.
 - **removable**: (boolean, optional) set *:removable="true"* if you want to display a "Remove Photo" button. Default value: false.
+- **hideChangeButton**: (boolean, optional) set *:hideChangeButton="true"* if you want to hide the "Change Photo" button. Default value: false.
 - **id, name**: (string, optional) the id and name attributes of the HTML input element.
 - **buttonClass**: (string, optional) the class which will be applied to the 'Change Photo' button.
   Default value: 'btn btn-primary button'.
@@ -126,6 +127,7 @@ Default value: true.
 - **change**: emitted on (successful) picture change. If you need to access the underlying image from the parent component, add a *ref* attribute to picture-input (see the example above). You may want to use *this.$refs.pictureInput.image* (Base64 Data URI string) or *this.$refs.pictureInput.file* (File Object)
 - **remove**: emitted on picture remove.
 - **click**: emitted on picture click.
+- **error**: emitted on error, along with an object with *type*, *msg*, and optional additional parameters.
   
 ## TODOs
 
