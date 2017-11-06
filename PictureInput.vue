@@ -200,7 +200,7 @@ export default {
 
     this.$on('error', (error) => {
       if (this.alertOnError) {
-        alert(error.msg)
+        alert(error.message)
       }
     })
   },
@@ -250,7 +250,7 @@ export default {
       this.onDragStop()
       this.onFileChange(e)
     },
-    onFileChange (e) {
+    onFileChange (e, prefill) {
       let files = e.target.files || e.dataTransfer.files
       if (!files.length) {
         return
@@ -261,7 +261,7 @@ export default {
           fileSize: files[0].size,
           fileType: files[0].type,
           fileName: files[0].name,
-          msg: this.strings.fileSize + ' (' + this.size + 'MB)'
+          message: this.strings.fileSize + ' (' + this.size + 'MB)'
         })
         return
       }
@@ -286,7 +286,7 @@ export default {
             fileSize: files[0].size,
             fileType: files[0].type,
             fileName: files[0].name,
-            msg: this.strings.fileType
+            message: this.strings.fileType
           })
           return
         }
@@ -294,29 +294,27 @@ export default {
       this.imageSelected = true
       this.image = ''
       if (this.supportsPreview) {
-        this.loadImage(files[0])
+        this.loadImage(files[0], prefill || false)
       } else {
-        this.$emit('change')
+        this.$emit(prefill ? 'prefill' : 'change')
       }
     },
-    loadImage (file) {
+    loadImage (file, prefill) {
       this.getEXIFOrientation(file, orientation => {
         this.setOrientation(orientation)
         let reader = new FileReader()
         reader.onload = e => {
           this.image = e.target.result
-          this.$emit('change')
+          this.$emit(prefill ? 'prefill' : 'change')
           this.imageObject = new Image()
           this.imageObject.onload = () => {
             if (this.autoToggleAspectRatio) {
               let canvasOrientation = this.getOrientation(this.canvasWidth, this.canvasHeight)
               let imageOrientation = this.getOrientation(this.imageObject.width, this.imageObject.height)
-
               if (canvasOrientation !== imageOrientation) {
                 this.rotateCanvas()
               }
             }
-
             this.drawImage(this.imageObject)
           }
           this.imageObject.src = this.image
@@ -481,9 +479,9 @@ export default {
         this.imageSelected = true
         this.image = ''
         if (this.supportsPreview) {
-          this.loadImage(source)
+          this.loadImage(source, true)
         } else {
-          this.$emit('change')
+          this.$emit('prefill')
         }
         return
       }
@@ -502,10 +500,13 @@ export default {
         let mediaType = options.mediaType || ('image/' + (options.fileType || fileName.split('.').slice(-1)[0]))
         mediaType = mediaType.replace('jpg', 'jpeg')
         e.target.files[0] = new File([imageBlob], fileName, { type: mediaType })
-        this.onFileChange(e)
+        this.onFileChange(e, true)
       })
       .catch(err => {
-        console.log('Failed loading prefill image: ' + err.message)
+        this.$emit('error', {
+          type: 'failedPrefill',
+          message: 'Failed loading prefill image: ' + err
+        })
       })
     }
   },
