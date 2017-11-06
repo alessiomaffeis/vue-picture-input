@@ -135,7 +135,6 @@ Default value: true.
 ## TODOs
 
 - Client-side resizing and cropping
-- Demo GitHub pages
 
 
 ## Contributions
