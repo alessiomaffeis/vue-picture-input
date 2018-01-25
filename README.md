@@ -127,7 +127,7 @@ Default value: true.
    
 ## Events
 
-- **change**: emitted on (successful) picture change (prefill excluded). If you need to access the underlying image from the parent component, add a *ref* attribute to picture-input (see the example above). You may want to use *this.$refs.pictureInput.image* (Base64 Data URI string) or *this.$refs.pictureInput.file* (File Object)
+- **change**: emitted on (successful) picture change (prefill excluded). The image is passed along with the event as a Base64 Data URI string. If you need to access the underlying image from the parent component, add a *ref* attribute to picture-input (see the example above). You may want to use *this.$refs.pictureInput.image* (Base64 Data URI string) or *this.$refs.pictureInput.file* (File Object)
 - **prefill**: emitted on default image prefill.
 - **remove**: emitted on picture remove.
 - **click**: emitted on picture click.
