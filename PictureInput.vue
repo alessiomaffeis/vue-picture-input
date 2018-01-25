@@ -198,14 +198,11 @@ export default {
     this.canvasWidth = this.width
     this.canvasHeight = this.height
 
-    this.$on('error', (error) => {
-      if (this.alertOnError) {
-        alert(error.message)
-      }
-    })
+    this.$on('error', this.onError)
   },
   beforeDestroy () {
     window.removeEventListener('resize', this.onResize)
+    this.$off('error', this.onError)
   },
   methods: {
     updateStrings () {
@@ -296,7 +293,16 @@ export default {
       if (this.supportsPreview) {
         this.loadImage(files[0], prefill || false)
       } else {
-        this.$emit(prefill ? 'prefill' : 'change')
+        if (prefill) {
+          this.$emit('prefill')
+        } else {
+          this.$emit('change', this.image)
+        }
+      }
+    },
+    onError (error) {
+      if (this.alertOnError) {
+        alert(error.message)
       }
     },
     loadImage (file, prefill) {
@@ -305,7 +311,11 @@ export default {
         let reader = new FileReader()
         reader.onload = e => {
           this.image = e.target.result
-          this.$emit(prefill ? 'prefill' : 'change')
+          if (prefill) {
+            this.$emit('prefill')
+          } else {
+            this.$emit('change', this.image)
+          }
           this.imageObject = new Image()
           this.imageObject.onload = () => {
             if (this.autoToggleAspectRatio) {

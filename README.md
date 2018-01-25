@@ -56,10 +56,11 @@ export default {
     PictureInput
   },
   methods: {
-    onChange () {
+    onChange (image) {
       console.log('New picture selected!')
-      if (this.$refs.pictureInput.image) {
+      if (image) {
         console.log('Picture loaded.')
+        this.image = image
       } else {
         console.log('FileReader API not supported: use the <form>, Luke!')
       }
