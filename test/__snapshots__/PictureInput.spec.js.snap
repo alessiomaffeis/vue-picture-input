@@ -1,0 +1,10 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PictureInput.vue matches snapshot 1`] = `
+<div id="picture-input" class="picture-input">
+    <div>
+        <button class="btn btn-primary button">Select a Photo</button>
+    </div>
+    <input type="file" accept="image/*">
+</div>
+`;
