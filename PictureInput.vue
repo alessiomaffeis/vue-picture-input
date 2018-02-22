@@ -2,35 +2,38 @@
   <div ref="container" id="picture-input" class="picture-input">
     <div v-if="!supportsUpload" v-html="strings.upload"></div>
     <div v-else-if="supportsPreview">
-      <div class="preview-container" 
-        :style="{maxWidth: previewWidth + 'px', height: previewHeight + 'px'}">
+      <div class="preview-container"
+        :style="{maxWidth: previewWidth + 'px', height: previewHeight + 'px', borderRadius: radius + '%'}">
           <canvas ref="previewCanvas"
-            class="picture-preview" 
+            class="picture-preview"
             :class="computedClasses"
-            @drag.stop.prevent="" 
-            @dragover.stop.prevent="" 
+            @drag.stop.prevent=""
+            @dragover.stop.prevent=""
             @dragstart.stop.prevent="onDragStart"
             @dragenter.stop.prevent="onDragStart"
             @dragend.stop.prevent="onDragStop"
             @dragleave.stop.prevent="onDragStop"
             @drop.stop.prevent="onFileDrop"
-            @click="selectImage"
-            :style="{height: previewHeight + 'px'}">
+            @click.prevent="onClick"
+            :style="{height: previewHeight + 'px', zIndex: zIndex + 1 }">
           </canvas>
-        <div v-if="!imageSelected" 
+        <div v-if="!imageSelected && !plain"
           class="picture-inner"
-            :style="{top: -previewHeight + 'px', marginBottom: -previewHeight + 'px' }">
+            :style="{top: -previewHeight + 'px', marginBottom: -previewHeight + 'px', fontSize: fontSize, borderRadius: radius + '%', zIndex: zIndex + 2}">
           <span v-if="supportsDragAndDrop" class="picture-inner-text" v-html="strings.drag"></span>
           <span v-else class="picture-inner-text" v-html="strings.tap"></span>
         </div>
       </div>
-      <button v-if="imageSelected" @click="selectImage" :class="buttonClass">{{ strings.change }}</button>
+      <button v-if="imageSelected && !hideChangeButton" @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</button>
+      <button v-if="imageSelected && removable" @click.prevent="removeImage" :class="removeButtonClass">{{ strings.remove }}</button>
+      <button v-if="imageSelected && toggleAspectRatio && width !== height" @click.prevent="rotateImage" :class="aspectButtonClass">{{ strings.aspect }}</button>
     </div>
     <div v-else>
-      <button v-if="!imageSelected" :class="buttonClass" @click="selectImage">{{ strings.select }}</button>
+      <button v-if="!imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.select }}</button>
       <div v-else>
         <div v-html="strings.selected"></div>
-        <button @click="selectImage" :class="buttonClass">{{ strings.change }}</button>
+        <button v-if="!hideChangeButton" @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</button>
+        <button v-if="removable" @click.prevent="removeImage" :class="removeButtonClass">{{ strings.remove }}</button>
       </div>
     </div>
     <input ref="fileInput" type="file" :name="name" :id="id" :accept="accept" @change="onFileChange">
@@ -73,7 +76,61 @@ export default {
       type: String,
       default: 'btn btn-primary button'
     },
+    removeButtonClass: {
+      type: String,
+      default: 'btn btn-secondary button secondary'
+    },
+    aspectButtonClass: {
+      type: String,
+      default: 'btn btn-secondary button secondary'
+    },
+    prefill: {
+      type: [String, File],
+      default: ''
+    },
+    prefillOptions: {
+      type: Object,
+      default: () => {
+        return {}
+      }
+    },
     crop: {
+      type: Boolean,
+      default: true
+    },
+    radius: {
+      type: [String, Number],
+      default: 0
+    },
+    removable: {
+      type: Boolean,
+      default: false
+    },
+    hideChangeButton: {
+      type: Boolean,
+      default: false
+    },
+    autoToggleAspectRatio: {
+      type: Boolean,
+      default: false
+    },
+    toggleAspectRatio: {
+      type: Boolean,
+      default: false
+    },
+    changeOnClick: {
+      type: Boolean,
+      default: true
+    },
+    plain: {
+      type: Boolean,
+      default: false
+    },
+    zIndex: {
+      type: Number,
+      default: 10000
+    },
+    alertOnError: {
       type: Boolean,
       default: true
     },
@@ -84,17 +141,30 @@ export default {
       }
     }
   },
+  watch: {
+    prefill () {
+      if (this.prefill) {
+        this.preloadImage(this.prefill, this.prefillOptions)
+      } else {
+        this.removeImage()
+      }
+    }
+  },
   data () {
     return {
       imageSelected: false,
       previewHeight: 0,
       previewWidth: 0,
       draggingOver: false,
+      canvasWidth: 0,
+      canvasHeight: 0,
       strings: {
         upload: '<p>Your device does not support file uploading.</p>',
         drag: 'Drag an image or <br>click here to select a file',
         tap: 'Tap here to select a photo <br>from your gallery',
         change: 'Change Photo',
+        aspect: 'Landscape/Portrait',
+        remove: 'Remove Photo',
         select: 'Select a Photo',
         selected: '<p>Photo successfully selected!</p>',
         fileSize: 'The file size exceeds the limit',
@@ -104,6 +174,10 @@ export default {
   },
   mounted () {
     this.updateStrings()
+    if (this.prefill) {
+      this.preloadImage(this.prefill, this.prefillOptions)
+    }
+
     this.$nextTick(() => {
       window.addEventListener('resize', this.onResize)
       this.onResize()
@@ -120,9 +194,15 @@ export default {
       this.fileTypes = this.accept.split(',')
       this.fileTypes = this.fileTypes.map(s => s.trim())
     }
+
+    this.canvasWidth = this.width
+    this.canvasHeight = this.height
+
+    this.$on('error', this.onError)
   },
   beforeDestroy () {
     window.removeEventListener('resize', this.onResize)
+    this.$off('error', this.onError)
   },
   methods: {
     updateStrings () {
@@ -132,15 +212,21 @@ export default {
         }
       }
     },
-    onResize () {
-      let previewRatio = this.width / this.height
-      let newWidth = this.$refs.container.clientWidth
-      if (newWidth === this.containerWidth) {
+    onClick () {
+      if (!this.imageSelected) {
+        this.selectImage()
         return
       }
-      this.containerWidth = newWidth
-      this.previewWidth = Math.min(this.containerWidth - this.margin * 2, this.width)
-      this.previewHeight = this.previewWidth / previewRatio
+
+      if (this.changeOnClick) {
+        this.selectImage()
+      }
+
+      this.$emit('click')
+    },
+    onResize () {
+      this.resizeCanvas()
+
       if (this.imageObject) {
         this.drawImage(this.imageObject)
       }
@@ -161,48 +247,84 @@ export default {
       this.onDragStop()
       this.onFileChange(e)
     },
-    onFileChange (e) {
+    onFileChange (e, prefill) {
       let files = e.target.files || e.dataTransfer.files
       if (!files.length) {
         return
       }
       if (files[0].size <= 0 || files[0].size > this.size * 1024 * 1024) {
-        alert(this.strings.fileSize + ' (' + this.size + 'MB)')
+        this.$emit('error', {
+          type: 'fileSize',
+          fileSize: files[0].size,
+          fileType: files[0].type,
+          fileName: files[0].name,
+          message: this.strings.fileSize + ' (' + this.size + 'MB)'
+        })
         return
       }
       if (files[0].name === this.fileName && files[0].size === this.fileSize && this.fileModified === files[0].lastModified) {
         return
       }
+
+      this.file = files[0]
       this.fileName = files[0].name
       this.fileSize = files[0].size
       this.fileModified = files[0].lastModified
+      this.fileType = files[0].type
+
       if (this.accept === 'image/*') {
         if (files[0].type.substr(0, 6) !== 'image/') {
           return
         }
       } else {
         if (this.fileTypes.indexOf(files[0].type) === -1) {
-          alert(this.strings.fileType)
+          this.$emit('error', {
+            type: 'fileType',
+            fileSize: files[0].size,
+            fileType: files[0].type,
+            fileName: files[0].name,
+            message: this.strings.fileType
+          })
           return
         }
       }
       this.imageSelected = true
       this.image = ''
       if (this.supportsPreview) {
-        this.loadImage(files[0])
+        this.loadImage(files[0], prefill || false)
       } else {
-        this.$emit('change')
+        if (prefill) {
+          this.$emit('prefill')
+        } else {
+          this.$emit('change', this.image)
+        }
       }
     },
-    loadImage (file) {
+    onError (error) {
+      if (this.alertOnError) {
+        alert(error.message)
+      }
+    },
+    loadImage (file, prefill) {
       this.getEXIFOrientation(file, orientation => {
         this.setOrientation(orientation)
         let reader = new FileReader()
         reader.onload = e => {
           this.image = e.target.result
-          this.$emit('change')
+          if (prefill) {
+            this.$emit('prefill')
+          } else {
+            this.$emit('change', this.image)
+          }
           this.imageObject = new Image()
           this.imageObject.onload = () => {
+            if (this.autoToggleAspectRatio) {
+              let canvasOrientation = this.getOrientation(this.canvasWidth, this.canvasHeight)
+              let imageOrientation = this.getOrientation(this.imageObject.width, this.imageObject.height)
+              if (canvasOrientation !== imageOrientation) {
+                this.rotateCanvas()
+              }
+            }
             this.drawImage(this.imageObject)
           }
           this.imageObject.src = this.image
@@ -218,8 +340,9 @@ export default {
       let offsetY = 0
       let scaledWidth = this.previewWidth
       let scaledHeight = this.previewHeight
+      const previewRatio = this.previewWidth / this.previewHeight
       if (this.crop) {
-        if (this.imageRatio > 1) {
+        if (this.imageRatio >= previewRatio) {
           scaledWidth = scaledHeight * this.imageRatio
           offsetX = (this.previewWidth - scaledWidth) / 2
         } else {
@@ -227,7 +350,7 @@ export default {
           offsetY = (this.previewHeight - scaledHeight) / 2
         }
       } else {
-        if (this.imageRatio > 1) {
+        if (this.imageRatio >= previewRatio) {
           scaledHeight = scaledWidth / this.imageRatio
           offsetY = (this.previewHeight - scaledHeight) / 2
         } else {
@@ -256,6 +379,64 @@ export default {
     },
     selectImage () {
       this.$refs.fileInput.click()
+    },
+    removeImage () {
+      this.$refs.fileInput.value = ''
+      this.$refs.fileInput.type = ''
+      this.$refs.fileInput.type = 'file'
+      this.fileName = ''
+      this.fileType = ''
+      this.fileSize = 0
+      this.fileModified = 0
+      this.imageSelected = false
+      this.image = ''
+      this.file = null
+      this.imageObject = null
+      this.$refs.previewCanvas.style.backgroundColor = 'rgba(200,200,200,.25)'
+      this.$refs.previewCanvas.width = this.previewWidth * this.pixelRatio
+      this.$emit('remove')
+    },
+    rotateImage () {
+      this.rotateCanvas()
+
+      if (this.imageObject) {
+        this.drawImage(this.imageObject)
+      }
+
+      let newOrientation = this.getOrientation(this.canvasWidth, this.canvasHeight)
+      this.$emit('aspectratiochange', newOrientation)
+    },
+    resizeCanvas () {
+      let previewRatio = this.canvasWidth / this.canvasHeight
+      let newWidth = this.$refs.container.clientWidth
+      if (!this.toggleAspectRatio && newWidth === this.containerWidth) {
+        return
+      }
+      this.containerWidth = newWidth
+      this.previewWidth = Math.min(this.containerWidth - this.margin * 2, this.canvasWidth)
+      this.previewHeight = this.previewWidth / previewRatio
+    },
+    getOrientation (width, height) {
+      let orientation = 'square'
+
+      if (width > height) {
+        orientation = 'landscape'
+      } else if (width < height) {
+        orientation = 'portrait'
+      }
+
+      return orientation
+    },
+    switchCanvasOrientation () {
+      const canvasWidth = this.canvasWidth
+      const canvasHeight = this.canvasHeight
+
+      this.canvasWidth = canvasHeight
+      this.canvasHeight = canvasWidth
+    },
+    rotateCanvas () {
+      this.switchCanvasOrientation()
+      this.resizeCanvas()
     },
     setOrientation (orientation) {
       this.rotate = false
@@ -301,6 +482,42 @@ export default {
         return callback(-1)
       }
       reader.readAsArrayBuffer(file.slice(0, 65536))
+    },
+    preloadImage (source, options) {
+      options = Object.assign({}, options)
+      if (typeof source === 'object') {
+        this.imageSelected = true
+        this.image = ''
+        if (this.supportsPreview) {
+          this.loadImage(source, true)
+        } else {
+          this.$emit('prefill')
+        }
+        return
+      }
+      let headers = new Headers()
+      headers.append('Accept', 'image/*')
+      fetch(source, {
+        method: 'GET',
+        mode: 'cors',
+        headers: headers
+      }).then(response => {
+        return response.blob()
+      })
+      .then(imageBlob => {
+        let e = { target: { files: [] } }
+        const fileName = options.fileName || source.split('/').slice(-1)[0]
+        let mediaType = options.mediaType || ('image/' + (options.fileType || fileName.split('.').slice(-1)[0]))
+        mediaType = mediaType.replace('jpg', 'jpeg')
+        e.target.files[0] = new File([imageBlob], fileName, { type: mediaType })
+        this.onFileChange(e, true)
+      })
+      .catch(err => {
+        this.$emit('error', {
+          type: 'failedPrefill',
+          message: 'Failed loading prefill image: ' + err
+        })
+      })
     }
   },
   computed: {
@@ -323,6 +540,9 @@ export default {
       const classObject = {}
       classObject['dragging-over'] = this.draggingOver
       return classObject
+    },
+    fontSize () {
+      return Math.min(0.04 * this.previewWidth, 21) + 'px'
     }
   }
 }
@@ -337,7 +557,7 @@ export default {
 .preview-container {
   width: 100%;
   box-sizing: border-box;
-  margin: 1em auto;
+  margin: 0 auto;
   cursor: pointer;
   overflow: hidden;
 }
@@ -345,20 +565,20 @@ export default {
   width: 100%;
   height: 100%;
   position: relative;
-  z-index: 1;
+  z-index: 10001;
   box-sizing: border-box;
   background-color: rgba(200,200,200,.25);
 }
 .picture-preview.dragging-over {
-  filter: brightness(0.5); 
+  filter: brightness(0.5);
 }
 .picture-inner {
   position: relative;
-  z-index: 2;
+  z-index: 10002;
   pointer-events: none;
   box-sizing: border-box;
   margin: 1em auto;
-  padding: 3em;
+  padding: 0.5em;
   border: .3em dashed rgba(66,66,66,.15);
   border-radius: 8px;
   width: calc(100% - 2.5em);
@@ -370,19 +590,13 @@ export default {
   vertical-align: middle;
   text-align: center;
   font-size: 2em;
+  line-height: 1.5;
 }
 button {
+  margin: 1em .25em;
   cursor: pointer;
 }
 input[type=file] {
   display: none;
-}
-@media (max-width: 767px) {
-  .picture-inner {
-    padding: 2vw;
-  }
-  .picture-inner .picture-inner-text {
-    font-size: 5vw;
-  }
 }
 </style>
