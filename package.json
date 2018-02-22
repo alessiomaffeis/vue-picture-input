@@ -4,7 +4,7 @@
   "description": "Mobile-friendly picture file input component with image preview and drag and drop.",
   "main": "PictureInput.vue",
   "scripts": {
-    "test": "npm run unit"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -24,5 +24,32 @@
   "bugs": {
     "url": "https://github.com/alessiomaffeis/vue-picture-input/issues"
   },
-  "homepage": "https://github.com/alessiomaffeis/vue-picture-input"
+  "homepage": "https://github.com/alessiomaffeis/vue-picture-input",
+  "devDependencies": {
+    "@vue/test-utils": "^1.0.0-beta.12",
+    "babel-core": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "jest": "^22.4.0",
+    "jest-serializer-vue": "^0.3.0",
+    "vue": "^2.5.13",
+    "vue-jest": "^2.1.0",
+    "vue-server-renderer": "^2.5.13",
+    "vue-template-compiler": "^2.5.13"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "vue"
+    ],
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1"
+    },
+    "transform": {
+      "^.+\\.js$": "<rootDir>/node_modules/babel-jest",
+      ".*\\.(vue)$": "<rootDir>/node_modules/vue-jest"
+    },
+    "snapshotSerializers": [
+      "<rootDir>/node_modules/jest-serializer-vue"
+    ]
+  }
 }
