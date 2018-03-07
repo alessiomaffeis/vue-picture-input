@@ -70,11 +70,40 @@ export default {
 </script>
 ```
 
+You can also use it directly in the browser through [unpkg's CDN](https://unpkg.com/vue-picture-input) (or [jsDelivr](https://cdn.jsdelivr.net/npm/vue-picture-input)):
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://unpkg.com/vue"></script>
+  <script src="https://unpkg.com/vue-picture-input"></script>
+  <title>In the browser!</title>
+</head>
+<body>
+  <div id="app">
+    <p>{{ message }}</p>
+    <picture-input></picture-input>
+  </div>
+  <script>
+    var app = new Vue({
+      el: '#app',
+      data: {
+        message: 'Hello Vue!'
+      },
+      components: {
+        'picture-input': PictureInput
+      }
+    })
+  </script>
+</body>
+</html>
+```
+
 ## Example project
 
-You can find an example project here: https://github.com/alessiomaffeis/vue-picture-input-example
+Try it on CodeSandbox: https://codesandbox.io/s/github/alessiomaffeis/vue-picture-input-example
 
-Demo: https://alessiomaffeis.github.io/vue-picture-input-example/ 
 
 ## Props
 
@@ -140,7 +169,7 @@ Default value: true.
 
 ## Contributions
 
-All contributions are welcome, as long as they are within the scope of the project.
+All contributions are welcome, as long as they are within the scope of the project. Please open a new issue before submitting a pull request.
 
-Please follow the Javascript Standard Style guidelines:
+You should follow the Javascript Standard Style guidelines:
 https://github.com/feross/standard/blob/master/RULES.md#javascript-standard-style
