@@ -51,5 +51,7 @@
     "snapshotSerializers": [
       "<rootDir>/node_modules/jest-serializer-vue"
     ]
-  }
+  },
+  "unpkg": "umd/vue-picture-input.js",
+  "jsdelivr": "umd/vue-picture-input.js"
 }
