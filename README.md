@@ -165,7 +165,7 @@ Default value: true.
 ## TODOs
 
 - Client-side resizing and cropping
-
+- Add tests
 
 ## Contributions
 
