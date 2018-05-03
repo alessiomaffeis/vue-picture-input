@@ -486,20 +486,18 @@ export default {
     preloadImage (source, options) {
       // ie 11 support
       let File = window.File
-
       try {
-        new File([], '')
-      } catch(e) {
+        new File([], '') // eslint-disable-line
+      } catch (e) {
         File = class File extends Blob {
-          constructor(chunks, filename, opts = {}){
+          constructor (chunks, filename, opts = {}) {
             super(chunks, opts)
             this.lastModifiedDate = new Date()
-            this.lastModified =+ this.lastModifiedDate
+            this.lastModified = +this.lastModifiedDate
             this.name = filename
           }
         }
       }
-      
       options = Object.assign({}, options)
       if (typeof source === 'object') {
         this.imageSelected = true
