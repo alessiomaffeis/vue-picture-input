@@ -484,6 +484,20 @@ export default {
       reader.readAsArrayBuffer(file.slice(0, 65536))
     },
     preloadImage (source, options) {
+      // ie 11 support
+      let File = window.File
+      try {
+        new File([], '') // eslint-disable-line
+      } catch (e) {
+        File = class File extends Blob {
+          constructor (chunks, filename, opts = {}) {
+            super(chunks, opts)
+            this.lastModifiedDate = new Date()
+            this.lastModified = +this.lastModifiedDate
+            this.name = filename
+          }
+        }
+      }
       options = Object.assign({}, options)
       if (typeof source === 'object') {
         this.imageSelected = true
