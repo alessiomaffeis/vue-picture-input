@@ -9,10 +9,10 @@
             :class="computedClasses"
             @drag.stop.prevent=""
             @dragover.stop.prevent=""
-            @dragstart.stop.prevent="onDragStart"
-            @dragenter.stop.prevent="onDragStart"
-            @dragend.stop.prevent="onDragStop"
-            @dragleave.stop.prevent="onDragStop"
+            @dragstart.stop.prevent=""
+            @dragend.stop.prevent=""
+            @dragenter.stop.prevent="onDragEnter"
+            @dragleave.stop.prevent="onDragLeave"
             @drop.stop.prevent="onFileDrop"
             @click.prevent="onClick"
             :style="{height: previewHeight + 'px', zIndex: zIndex + 1 }">
@@ -231,20 +231,20 @@ export default {
         this.drawImage(this.imageObject)
       }
     },
-    onDragStart () {
+    onDragEnter () {
       if (!this.supportsDragAndDrop) {
         return
       }
       this.draggingOver = true
     },
-    onDragStop () {
+    onDragLeave () {
       if (!this.supportsDragAndDrop) {
         return
       }
       this.draggingOver = false
     },
     onFileDrop (e) {
-      this.onDragStop()
+      this.onDragLeave()
       this.onFileChange(e)
     },
     onFileChange (e, prefill) {
