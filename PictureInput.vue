@@ -84,6 +84,10 @@ export default {
       type: String,
       default: 'btn btn-secondary button secondary'
     },
+    innerFontBasis:{
+      type: Number,
+      default: 21
+    },
     prefill: {
       type: [String, File],
       default: ''
@@ -556,7 +560,7 @@ export default {
       return classObject
     },
     fontSize () {
-      return Math.min(0.04 * this.previewWidth, 21) + 'px'
+      return Math.min(0.04 * this.previewWidth, this.innerFontBasis) + 'px'
     }
   }
 }
