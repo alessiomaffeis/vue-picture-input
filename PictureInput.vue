@@ -6,6 +6,7 @@
         :style="{maxWidth: previewWidth + 'px', height: previewHeight + 'px', borderRadius: radius + '%'}">
           <canvas ref="previewCanvas"
             class="picture-preview"
+            tabindex="0"
             :class="computedClasses"
             @drag.stop.prevent=""
             @dragover.stop.prevent=""
@@ -15,6 +16,7 @@
             @dragleave.stop.prevent="onDragLeave"
             @drop.stop.prevent="onFileDrop"
             @click.prevent="onClick"
+            @keyup.enter="onClick"
             :style="{height: previewHeight + 'px', zIndex: zIndex + 1 }">
           </canvas>
         <div v-if="!imageSelected && !plain"
