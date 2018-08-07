@@ -38,7 +38,7 @@
         <button v-if="removable" @click.prevent="removeImage" :class="removeButtonClass">{{ strings.remove }}</button>
       </div>
     </div>
-    <input ref="fileInput" type="file" :name="name" :id="id" :accept="accept" @change="onFileChange">
+    <input ref="fileInput" type="file" :name="name" :id="id" :accept="accept" @change="onFileChange" :multiple="multiple">
   </div>
 </template>
 
@@ -73,6 +73,10 @@ export default {
     id: {
       type: [String, Number],
       default: null
+    },
+    multiple: {
+      type: Boolean,
+      default: false
     },
     buttonClass: {
       type: String,
@@ -254,6 +258,13 @@ export default {
       if (!files.length) {
         return
       }
+
+      // we don't have a way to handle multiple files internally,
+      // but we can emit this data to be used externally in some way
+      if( files.length > 1 ) {
+        this.$emit('multiple', files);
+      }
+
       if (files[0].size <= 0 || files[0].size > this.size * 1024 * 1024) {
         this.$emit('error', {
           type: 'fileSize',
