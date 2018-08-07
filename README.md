@@ -114,6 +114,7 @@ Try it on CodeSandbox: https://codesandbox.io/s/github/alessiomaffeis/vue-pictur
 - **plain**: (boolean, optional) Set *:plain="true"* to remove the inner border and text. Default value: false.
 - **accept**: (media type, optional) the accepted image type(s), e.g. image/jpeg, image/gif, etc. Default value: 'image/*'. 
 - **size**: (MB, optional) the maximum accepted file size in megabytes.
+- **multiple**: (boolean, optional) allows for multiple files to be selected. Note that handling of multiple files is up to you. see @multiple event.
 - **removable**: (boolean, optional) set *:removable="true"* if you want to display a "Remove Photo" button. Default value: false.
 - **hideChangeButton**: (boolean, optional) set *:hideChangeButton="true"* if you want to hide the "Change Photo" button. Default value: false.
 - **id, name**: (string, optional) the id and name attributes of the HTML input element.
@@ -160,6 +161,7 @@ Default value: true.
 - **prefill**: emitted on default image prefill.
 - **remove**: emitted on picture remove.
 - **click**: emitted on picture click.
+- **multiple**: emitted when multiple files (depends on "multiple" prop being set to true) are selected. Outputs a FileList.
 - **error**: emitted on error, along with an object with *type*, *message*, and optional additional parameters.
   
 ## TODOs
