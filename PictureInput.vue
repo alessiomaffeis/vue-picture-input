@@ -87,7 +87,8 @@ export default {
       default: 'btn btn-secondary button secondary'
     },
     prefill: {
-      type: [String, File],
+      // check for File API existence, do not fail with server side rendering
+      type: (typeof File === 'undefined') ? [String] : [String, File],
       default: ''
     },
     prefillOptions: {
