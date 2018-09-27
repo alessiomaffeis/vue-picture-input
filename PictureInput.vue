@@ -199,6 +199,10 @@ export default {
 
     this.canvasWidth = this.width
     this.canvasHeight = this.height
+    if( this.width != Number.MAX_SAFE_INTEGER && this.height != Number.MAX_SAFE_INTEGER ) {
+      this.previewWidth = this.width
+      this.previewHeight = this.height
+    }
 
     this.$on('error', this.onError)
   },
