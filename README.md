@@ -34,7 +34,7 @@ yarn add vue-picture-input
       button-class="btn"
       :custom-strings="{
         upload: '<h1>Bummer!</h1>',
-        drag: 'Drag a 😺 GIF or GTFO'
+        drag: 'Drag a 😺 JPEG or PNG'
       }"
       @change="onChange">
     </picture-input>
