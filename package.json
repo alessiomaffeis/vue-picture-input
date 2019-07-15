@@ -37,6 +37,7 @@
     "vue-template-compiler": "^2.5.13"
   },
   "jest": {
+    "testURL": "http://localhost/",
     "moduleFileExtensions": [
       "js",
       "vue"
