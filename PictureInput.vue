@@ -530,6 +530,9 @@ export default {
         const fileName = options.fileName || source.split('/').slice(-1)[0]
         let mediaType = options.mediaType || ('image/' + (options.fileType || fileName.split('.').slice(-1)[0]))
         mediaType = mediaType.replace('jpg', 'jpeg')
+        if (mediaType === 'image/svg') {
+          mediaType = 'image/svg+xml'
+        }
         e.target.files[0] = new File([imageBlob], fileName, { type: mediaType })
         this.onFileChange(e, true)
       })
