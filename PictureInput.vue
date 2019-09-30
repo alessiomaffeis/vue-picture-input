@@ -6,17 +6,15 @@
         :style="{maxWidth: previewWidth + 'px', height: previewHeight + 'px', borderRadius: radius + '%'}">
           <canvas ref="previewCanvas"
             class="picture-preview"
-            tabindex="0"
             :class="computedClasses"
             @drag.stop.prevent=""
             @dragover.stop.prevent=""
-            @dragstart.stop.prevent=""
-            @dragend.stop.prevent=""
-            @dragenter.stop.prevent="onDragEnter"
-            @dragleave.stop.prevent="onDragLeave"
+            @dragstart.stop.prevent="onDragStart"
+            @dragenter.stop.prevent="onDragStart"
+            @dragend.stop.prevent="onDragStop"
+            @dragleave.stop.prevent="onDragStop"
             @drop.stop.prevent="onFileDrop"
             @click.prevent="onClick"
-            @keyup.enter="onClick"
             :style="{height: previewHeight + 'px', zIndex: zIndex + 1 }">
           </canvas>
         <div v-if="!imageSelected && !plain"
@@ -26,25 +24,31 @@
           <span v-else class="picture-inner-text" v-html="strings.tap"></span>
         </div>
       </div>
-      <button v-if="imageSelected && !hideChangeButton" @click.prevent="selectImage" :class="buttonClass" type="button">{{ strings.change }}</button>
-      <button v-if="imageSelected && removable" @click.prevent="removeImage" :class="removeButtonClass" type="button">{{ strings.remove }}</button>
-      <button v-if="imageSelected && toggleAspectRatio && width !== height" @click.prevent="rotateImage" :class="aspectButtonClass" type="button">{{ strings.aspect }}</button>
+      <Button v-if="imageSelected && !hideChangeButton" @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</Button>
+      <Button v-if="imageSelected && removable" @click.prevent="removeImage" :class="removeButtonClass">{{ strings.remove }}</Button>
+      <button v-if="imageSelected && toggleAspectRatio && width !== height" @click.prevent="rotateImage" :class="aspectButtonClass">{{ strings.aspect }}</button>
     </div>
     <div v-else>
-      <button v-if="!imageSelected" @click.prevent="selectImage" :class="buttonClass" type="button">{{ strings.select }}</button>
+      <Button v-if="!imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.select }}</Button>
       <div v-else>
         <div v-html="strings.selected"></div>
-        <button v-if="!hideChangeButton" @click.prevent="selectImage" :class="buttonClass" type="button">{{ strings.change }}</button>
-        <button v-if="removable" @click.prevent="removeImage" :class="removeButtonClass" type="button">{{ strings.remove }}</button>
+        <Button v-if="!hideChangeButton" @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</Button>
+        <Button v-if="removable" @click.prevent="removeImage" :class="removeButtonClass">{{ strings.remove }}</Button>
       </div>
     </div>
-    <input ref="fileInput" type="file" :name="name" :id="id" :accept="accept" @change="onFileChange" :capture="capture" />
+    <input ref="fileInput" type="file" :name="name" :id="id" :accept="accept" @change="onFileChange">
   </div>
 </template>
 
 <script>
+import Button from '@/components/Button'
+  
 export default {
   name: 'picture-input',
+  // New stuff xylophone
+  components:{
+      Button
+  },
   props: {
     width: {
       type: [String, Number],
@@ -61,10 +65,6 @@ export default {
     accept: {
       type: String,
       default: 'image/*'
-    },
-    capture: {
-      type: String,
-      default: null
     },
     size: {
       type: [String, Number],
@@ -91,8 +91,7 @@ export default {
       default: 'btn btn-secondary button secondary'
     },
     prefill: {
-      // check for File API existence, do not fail with server side rendering
-      type: (typeof File === 'undefined') ? [String] : [String, File],
+      type: [String, File],
       default: ''
     },
     prefillOptions: {
@@ -238,20 +237,20 @@ export default {
         this.drawImage(this.imageObject)
       }
     },
-    onDragEnter () {
+    onDragStart () {
       if (!this.supportsDragAndDrop) {
         return
       }
       this.draggingOver = true
     },
-    onDragLeave () {
+    onDragStop () {
       if (!this.supportsDragAndDrop) {
         return
       }
       this.draggingOver = false
     },
     onFileDrop (e) {
-      this.onDragLeave()
+      this.onDragStop()
       this.onFileChange(e)
     },
     onFileChange (e, prefill) {
@@ -530,9 +529,6 @@ export default {
         const fileName = options.fileName || source.split('/').slice(-1)[0]
         let mediaType = options.mediaType || ('image/' + (options.fileType || fileName.split('.').slice(-1)[0]))
         mediaType = mediaType.replace('jpg', 'jpeg')
-        if (mediaType === 'image/svg') {
-          mediaType = 'image/svg+xml'
-        }
         e.target.files[0] = new File([imageBlob], fileName, { type: mediaType })
         this.onFileChange(e, true)
       })
@@ -572,7 +568,8 @@ export default {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@import '@/scss/settings.scss';
 .picture-input {
   width: 100%;
   margin: 0 auto;
@@ -584,6 +581,10 @@ export default {
   margin: 0 auto;
   cursor: pointer;
   overflow: hidden;
+  /* New stuff xylophone */
+  border-width: 1px;
+  border-style:solid;
+  border-color:map-get($colors,light-dark);
 }
 .picture-preview {
   width: 100%;
@@ -617,8 +618,9 @@ export default {
   line-height: 1.5;
 }
 button {
-  margin: 1em .25em;
+  margin: 1em 0.25em;
   cursor: pointer;
+  max-width:40%;
 }
 input[type=file] {
   display: none;
