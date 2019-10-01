@@ -24,16 +24,16 @@
           <span v-else class="picture-inner-text" v-html="strings.tap"></span>
         </div>
       </div>
-      <Button v-if="imageSelected && !hideChangeButton" @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</Button>
-      <Button v-if="imageSelected && removable" @click.prevent="removeImage" :class="removeButtonClass">{{ strings.remove }}</Button>
-      <button v-if="imageSelected && toggleAspectRatio && width !== height" @click.prevent="rotateImage" :class="aspectButtonClass">{{ strings.aspect }}</button>
+      <Button v-if="imageSelected && !hideChangeButton" @click.native="selectImage" :class="buttonClass">{{ strings.change }}</Button>
+      <Button v-if="imageSelected && removable" @click.native="removeImage" :class="removeButtonClass">{{ strings.remove }}</Button>
+      <button v-if="imageSelected && toggleAspectRatio && width !== height" @click.native="rotateImage" :class="aspectButtonClass">{{ strings.aspect }}</button>
     </div>
     <div v-else>
-      <Button v-if="!imageSelected" @click.prevent="selectImage" :class="buttonClass">{{ strings.select }}</Button>
+      <Button v-if="!imageSelected" @click.native="selectImage" :class="buttonClass">{{ strings.select }}</Button>
       <div v-else>
         <div v-html="strings.selected"></div>
-        <Button v-if="!hideChangeButton" @click.prevent="selectImage" :class="buttonClass">{{ strings.change }}</Button>
-        <Button v-if="removable" @click.prevent="removeImage" :class="removeButtonClass">{{ strings.remove }}</Button>
+        <Button v-if="!hideChangeButton" @click.native="selectImage" :class="buttonClass">{{ strings.change }}</Button>
+        <Button v-if="removable" @click.native="removeImage" :class="removeButtonClass">{{ strings.remove }}</Button>
       </div>
     </div>
     <input ref="fileInput" type="file" :name="name" :id="id" :accept="accept" @change="onFileChange">
@@ -620,7 +620,6 @@ export default {
 button {
   margin: 1em 0.25em;
   cursor: pointer;
-  max-width:40%;
 }
 input[type=file] {
   display: none;
