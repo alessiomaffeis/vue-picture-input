@@ -92,7 +92,7 @@ export default {
     },
     prefill: {
       // check for File API existence, do not fail with server side rendering
-      type: (typeof File === 'undefined') ? [String] : [String, File],
+      type: (typeof File === 'undefined' || typeof Blob === 'undefined') ? [String] : [String, File, Blob],
       default: ''
     },
     prefillOptions: {
