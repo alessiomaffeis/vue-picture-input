@@ -520,7 +520,7 @@ export default {
       headers.append('Accept', 'image/*')
       fetch(source, {
         method: 'GET',
-        mode: 'cors',
+        mode: 'no-cors',
         headers: headers
       }).then(response => {
         return response.blob()
