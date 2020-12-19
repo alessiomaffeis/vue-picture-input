@@ -516,6 +516,13 @@ export default {
         }
         return
       }
+      if (source.indexOf('data:') === -1) {
+        if (source.indexOf('?') !== -1) {
+          source += '&_=' + (new Date().getTime())
+        } else {
+          source += '?_=' + (new Date().getTime())
+        }
+      }
       let headers = new Headers()
       headers.append('Accept', 'image/*')
       fetch(source, {
@@ -530,6 +537,7 @@ export default {
         const fileName = options.fileName || source.split('/').slice(-1)[0]
         let mediaType = options.mediaType || ('image/' + (options.fileType || fileName.split('?')[0].split('.').slice(-1)[0].split('?')[0]))
         mediaType = mediaType.replace('jpg', 'jpeg')
+        mediaType = mediaType.replace('image/svg', 'image/svg+xml')
         if (mediaType === 'image/svg') {
           mediaType = 'image/svg+xml'
         }
