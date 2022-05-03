@@ -204,6 +204,10 @@ export default {
 
     this.canvasWidth = this.width
     this.canvasHeight = this.height
+    if( this.width != Number.MAX_SAFE_INTEGER && this.height != Number.MAX_SAFE_INTEGER ) {
+      this.previewWidth = this.width
+      this.previewHeight = this.height
+    }
 
     this.$on('error', this.onError)
   },
@@ -232,9 +236,7 @@ export default {
       this.$emit('click')
     },
     onResize () {
-      this.resizeCanvas()
-
-      if (this.imageObject) {
+      if (this.resizeCanvas() && this.imageObject) {
         this.drawImage(this.imageObject)
       }
     },
@@ -416,12 +418,14 @@ export default {
     resizeCanvas () {
       let previewRatio = this.canvasWidth / this.canvasHeight
       let newWidth = this.$refs.container.clientWidth
+      if( !newWidth ) return false;
       if (!this.toggleAspectRatio && newWidth === this.containerWidth) {
-        return
+        return false;
       }
       this.containerWidth = newWidth
       this.previewWidth = Math.min(this.containerWidth - this.margin * 2, this.canvasWidth)
       this.previewHeight = this.previewWidth / previewRatio
+      return true;
     },
     getOrientation (width, height) {
       let orientation = 'square'
