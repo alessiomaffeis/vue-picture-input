@@ -31,6 +31,7 @@
     "babel-preset-env": "^1.6.1",
     "jest": "^22.4.0",
     "jest-serializer-vue": "^0.3.0",
+    "poi": "^12.10.3",
     "vue": "^2.5.13",
     "vue-jest": "^2.1.0",
     "vue-server-renderer": "^2.5.13",
