@@ -373,7 +373,7 @@ export default {
       canvas.height = this.previewHeight * this.pixelRatio
       this.context.setTransform(1, 0, 0, 1, 0, 0)
       this.context.clearRect(0, 0, canvas.width, canvas.height)
-      if (this.rotate) {
+      if (this.rotate && typeof this.imageObject.style.imageOrientation === 'undefined') {
         this.context.translate(offsetX * this.pixelRatio, offsetY * this.pixelRatio)
         this.context.translate(scaledWidth / 2 * this.pixelRatio, scaledHeight / 2 * this.pixelRatio)
         this.context.rotate(this.rotate)
