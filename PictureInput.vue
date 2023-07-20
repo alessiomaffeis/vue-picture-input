@@ -580,7 +580,6 @@ export default {
 <style scoped>
 .picture-input {
   width: 100%;
-  flex-grow: 1;
   margin: 0 auto;
   text-align: center;
 }
