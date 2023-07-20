@@ -201,13 +201,10 @@ export default {
       this.fileTypes = this.accept.split(',')
       this.fileTypes = this.fileTypes.map(s => s.trim())
     }
-
-    this.canvasWidth = this.width
-    this.canvasHeight = this.height
-    if( this.width != Number.MAX_SAFE_INTEGER && this.height != Number.MAX_SAFE_INTEGER ) {
-      this.previewWidth = this.width
-      this.previewHeight = this.height
-    }
+    this.canvasWidth = this.width != Number.MAX_SAFE_INTEGER ? this.width : this.$refs.container.clientWidth 
+    this.canvasHeight = this.height != Number.MAX_SAFE_INTEGER ? this.height : this.canvasWidth
+    this.previewWidth = this.canvasWidth
+    this.previewHeight = this.canvasHeight
   },
   beforeDestroy () {
     window.removeEventListener('resize', this.onResize)
@@ -583,6 +580,7 @@ export default {
 <style scoped>
 .picture-input {
   width: 100%;
+  flex-grow: 1;
   margin: 0 auto;
   text-align: center;
 }
