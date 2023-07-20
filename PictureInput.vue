@@ -208,12 +208,9 @@ export default {
       this.previewWidth = this.width
       this.previewHeight = this.height
     }
-
-    this.$on('error', this.onError)
   },
   beforeDestroy () {
     window.removeEventListener('resize', this.onResize)
-    this.$off('error', this.onError)
   },
   methods: {
     updateStrings () {
@@ -269,6 +266,9 @@ export default {
           fileName: files[0].name,
           message: this.strings.fileSize + ' (' + this.size + 'MB)'
         })
+        if (this.alertOnError) {
+          alert(this.strings.fileSize + ' (' + this.size + 'MB)')
+        }
         return
       }
       if (files[0].name === this.fileName && files[0].size === this.fileSize && this.fileModified === files[0].lastModified) {
@@ -279,21 +279,24 @@ export default {
       this.fileName = files[0].name
       this.fileSize = files[0].size
       this.fileModified = files[0].lastModified
-      this.fileType = files[0].type
+      this.fileType = files[0].type.split(';')[0]
 
       if (this.accept === 'image/*') {
-        if (files[0].type.substr(0, 6) !== 'image/') {
+        if (this.fileType.substr(0, 6) !== 'image/') {
           return
         }
       } else {
-        if (this.fileTypes.indexOf(files[0].type) === -1) {
+        if (this.fileTypes.indexOf(this.fileType) === -1) {
           this.$emit('error', {
             type: 'fileType',
-            fileSize: files[0].size,
-            fileType: files[0].type,
-            fileName: files[0].name,
+            fileSize: this.fileSize,
+            fileType: this.fileType,
+            fileName: this.fileName,
             message: this.strings.fileType
           })
+          if (this.alertOnError) {
+            alert(this.strings.fileType)
+          }
           return
         }
       }
@@ -309,22 +312,12 @@ export default {
         }
       }
     },
-    onError (error) {
-      if (this.alertOnError) {
-        alert(error.message)
-      }
-    },
     loadImage (file, prefill) {
       this.getEXIFOrientation(file, orientation => {
         this.setOrientation(orientation)
         let reader = new FileReader()
         reader.onload = e => {
           this.image = e.target.result
-          if (prefill) {
-            this.$emit('prefill')
-          } else {
-            this.$emit('change', this.image)
-          }
           this.imageObject = new Image()
           this.imageObject.onload = () => {
             if (this.autoToggleAspectRatio) {
@@ -539,7 +532,7 @@ export default {
       .then(imageBlob => {
         let e = { target: { files: [] } }
         const fileName = options.fileName || source.split('/').slice(-1)[0]
-        let mediaType = options.mediaType || ('image/' + (options.fileType || fileName.split('?')[0].split('.').slice(-1)[0].split('?')[0]))
+        let mediaType = options.mediaType || imageBlob.type || ('image/' + (options.fileType || fileName.split('?')[0].split('.').slice(-1)[0].split('?')[0]))
         mediaType = mediaType.replace('jpg', 'jpeg')
         mediaType = mediaType.replace('image/svg', 'image/svg+xml')
         if (mediaType === 'image/svg') {
@@ -553,6 +546,9 @@ export default {
           type: 'failedPrefill',
           message: 'Failed loading prefill image: ' + err
         })
+        if (this.alertOnError) {
+          alert('Failed loading prefill image: ' + err)
+        }
       })
     }
   },
