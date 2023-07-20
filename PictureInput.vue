@@ -412,7 +412,7 @@ export default {
       let previewRatio = this.canvasWidth / this.canvasHeight
       let newWidth = this.$refs.container.clientWidth
       if( !newWidth ) return false;
-      if (!this.toggleAspectRatio && newWidth === this.containerWidth) {
+      if (!this.toggleAspectRatio && !this.autoToggleAspectRatio && newWidth === this.containerWidth) {
         return false;
       }
       this.containerWidth = newWidth
