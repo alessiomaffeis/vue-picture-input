@@ -592,6 +592,7 @@ export default {
   margin: 0 auto;
   cursor: pointer;
   overflow: hidden;
+  transform: translate3d(0,0,0);
 }
 .picture-preview {
   width: 100%;
