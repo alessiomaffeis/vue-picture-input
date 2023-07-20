@@ -248,10 +248,11 @@ export default {
     },
     onFileDrop (e) {
       this.onDragLeave()
+      this.$refs.fileInput.files = e.target.files || e.dataTransfer.files
       this.onFileChange(e)
     },
     onFileChange (e, prefill) {
-      let files = e.target.files || e.dataTransfer.files
+      const files = e.target.files || e.dataTransfer.files
       if (!files.length) {
         return
       }
