@@ -137,6 +137,7 @@ Try it on CodeSandbox: https://codesandbox.io/s/github/alessiomaffeis/vue-pictur
 wrong type or too big.
 Default value: true.
 - **customStrings**: (object, optional) use this to provide one or more custom strings (see the example above). Here are the available strings and their default values:
+- **capture**: (string, optional) use this if you want to allow image capture from capture devices (e.g. camera)
 
 ```js
 {
