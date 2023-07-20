@@ -4,7 +4,8 @@
   "description": "Mobile-friendly picture file input component with image preview and drag and drop.",
   "main": "PictureInput.vue",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "export NODE_OPTIONS=--openssl-legacy-provider; poi --prod"
   },
   "repository": {
     "type": "git",
@@ -17,7 +18,7 @@
     "input",
     "preview",
     "form",
-    "upload",
+    "upload"
   ],
   "author": "alessio@maffe.is",
   "license": "MIT",
