@@ -1,7 +1,7 @@
 vue-picture-input
 =============
 
-Mobile-friendly picture file input Vue.js component with image preview, drag and drop, EXIF orientation, and more.
+Mobile-friendly picture file input component for Vue.js 2-3 with image preview, drag and drop, EXIF orientation, and more.
 
 ![vue-pictur-input-demo](https://user-images.githubusercontent.com/2185511/167262626-5f10679f-70cf-4477-865a-508c67bca44e.gif)
 
