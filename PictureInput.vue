@@ -278,17 +278,15 @@ export default {
       this.fileSize = files[0].size
       this.fileModified = files[0].lastModified
       this.fileType = files[0].type.split(';')[0]
-      
-      if (this.fileType == '' && this.fileName) {
-        this.fileType = '.' + this.fileName.split('.').pop();
-      }
+      const fileExtension = files[0].name.split('.').pop()
       
       if (this.accept === 'image/*') {
         if (this.fileType.substr(0, 6) !== 'image/') {
           return
         }
       } else {
-        if (this.fileTypes.indexOf(this.fileType) === -1) {
+        if (this.fileTypes.indexOf(this.fileType) === -1 &&
+            this.fileTypes.indexOf(fileExtension) === -1) {
           this.$emit('error', {
             type: 'fileType',
             fileSize: this.fileSize,
