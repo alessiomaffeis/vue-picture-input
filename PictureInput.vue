@@ -31,7 +31,7 @@
         >
         </canvas>
         <div
-          v-if="!imageSelected && !plain"
+          v-if="!(imageSelected || imagePreloaded) && !plain"
           class="picture-inner"
           :style="{
             top: -previewHeight + 'px',
@@ -109,7 +109,7 @@
       :name="name"
       :id="id"
       :accept="accept"
-      @change="onFileChange"
+      @change.stop="onFileChange"
       :capture="capture"
     />
   </div>
@@ -236,6 +236,7 @@ export default {
   data() {
     return {
       imageSelected: false,
+      imagePreloaded: false,
       previewHeight: 0,
       previewWidth: 0,
       draggingOver: false,
@@ -332,7 +333,7 @@ export default {
     onFileDrop(e) {
       this.onDragLeave();
       this.$refs.fileInput.files = e.target.files || e.dataTransfer.files;
-      this.onFileChange(e);
+      this.onFileChange(e, false);
     },
     onFileChange(e, prefill) {
       const files = e.target.files || e.dataTransfer.files;
@@ -385,8 +386,8 @@ export default {
           return;
         }
       }
-      this.imageSelected = true;
-      this.image = "";
+      this.imageSelected = !prefill;
+      this.imagePreloaded = prefill;
       if (this.supportsPreview) {
         this.loadImage(files[0], prefill || false);
       } else {
@@ -419,6 +420,11 @@ export default {
               }
             }
             this.drawImage(this.imageObject);
+            if (prefill) {
+              this.$emit("prefill");
+            } else {
+              this.$emit("change", this.image);
+            }
           };
           this.imageObject.src = this.image;
         };
@@ -496,8 +502,11 @@ export default {
       this.image = "";
       this.file = null;
       this.imageObject = null;
-      this.$refs.previewCanvas.style.backgroundColor = "rgba(200,200,200,.25)";
-      this.$refs.previewCanvas.width = this.previewWidth * this.pixelRatio;
+      if (this.$refs.previewCanvas) {
+        this.$refs.previewCanvas.style.backgroundColor =
+          "rgba(200,200,200,.25)";
+        this.$refs.previewCanvas.width = this.previewWidth * this.pixelRatio;
+      }
       this.$emit("remove");
     },
     rotateImage() {
@@ -616,8 +625,7 @@ export default {
       }
       options = Object.assign({}, options);
       if (typeof source === "object") {
-        this.imageSelected = true;
-        this.image = "";
+        this.imagePreloaded = true;
         if (this.supportsPreview) {
           this.loadImage(source, true);
         } else {
