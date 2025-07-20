@@ -1,6 +1,6 @@
 {
   "name": "vue-picture-input",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Mobile-friendly picture file input component with image preview and drag and drop.",
   "main": "dist/vue-picture-input.umd.js",
   "module": "dist/vue-picture-input.es.js",
