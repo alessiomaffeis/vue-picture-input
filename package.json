@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "test": "jest",
-    "build": "npm run build:es && npm run build:umd",
+    "build": "rm -rf dist && npm run build:es && npm run build:umd",
     "build:es": "BUILD_FORMAT=es vite build --mode production",
     "build:umd": "BUILD_FORMAT=umd vite build --mode production",
     "dev": "vite"

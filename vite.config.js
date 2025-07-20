@@ -23,6 +23,7 @@ export default defineConfig({
         : ["es", "umd"],
     },
     outDir: "dist",
+    emptyOutDir: process.env.BUILD_FORMAT ? false : true,
     cssCodeSplit: false,
     rollupOptions: {
       external: ["vue"],
