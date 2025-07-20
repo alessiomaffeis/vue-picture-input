@@ -1,6 +1,6 @@
 # vue-picture-input
 
-Mobile-friendly picture file input component for Vue.js 2-3 with image preview, drag and drop, EXIF orientation, and more.
+Mobile-friendly picture file input component for Vue.js 2 & 3 with image preview, drag and drop, EXIF orientation, and more.
 
 ![vue-pictur-input-demo](https://user-images.githubusercontent.com/2185511/167262626-5f10679f-70cf-4477-865a-508c67bca44e.gif)
 
@@ -18,7 +18,13 @@ npm install --save vue-picture-input
 yarn add vue-picture-input
 ```
 
+## Compatibility
+
+This component works with both **Vue 2** (2.6+) and **Vue 3** (3.0+). The component is written in Vue 2 style but is compatible with Vue 3 through Vue's compatibility features.
+
 ## Usage
+
+### Vue 2 & Vue 3 (Options API)
 
 ```HTML
 <template>
@@ -49,6 +55,7 @@ export default {
   name: 'app',
   data () {
     return {
+      image: null
     }
   },
   components: {
@@ -64,6 +71,49 @@ export default {
         console.log('FileReader API not supported: use the <form>, Luke!')
       }
     }
+  }
+}
+</script>
+```
+
+### Vue 3 (Composition API)
+
+```HTML
+<template>
+  <div class="hello">
+    <picture-input
+      ref="pictureInput"
+      width="600"
+      height="600"
+      margin="16"
+      accept="image/jpeg,image/png"
+      size="10"
+      button-class="btn"
+      :custom-strings="{
+        upload: '<h1>Bummer!</h1>',
+        drag: 'Drag a 😺 GIF or GTFO'
+      }"
+      @change="onChange">
+    </picture-input>
+  </div>
+</template>
+```
+
+```javascript
+<script setup>
+import { ref } from 'vue'
+import PictureInput from 'vue-picture-input'
+
+const pictureInput = ref(null)
+const image = ref(null)
+
+const onChange = (newImage) => {
+  console.log('New picture selected!')
+  if (newImage) {
+    console.log('Picture loaded.')
+    image.value = newImage
+  } else {
+    console.log('FileReader API not supported: use the <form>, Luke!')
   }
 }
 </script>
