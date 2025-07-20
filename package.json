@@ -2,7 +2,14 @@
   "name": "vue-picture-input",
   "version": "3.0.1",
   "description": "Mobile-friendly picture file input component with image preview and drag and drop.",
-  "main": "PictureInput.vue",
+  "main": "dist/vue-picture-input.cjs.js",
+  "module": "dist/vue-picture-input.es.js",
+  "files": [
+    "dist",
+    "PictureInput.vue",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "test": "jest",
     "build": "vite build",
@@ -61,6 +68,6 @@
       "jest-serializer-vue"
     ]
   },
-  "unpkg": "umd/vue-picture-input.js",
-  "jsdelivr": "umd/vue-picture-input.js"
+  "unpkg": "dist/vue-picture-input.umd.js",
+  "jsdelivr": "dist/vue-picture-input.umd.js"
 }

@@ -1,3 +1,9 @@
 .babelrc
 test
 dev
+umd
+node_modules
+.git
+.gitignore
+babel.config.js
+vite.config.js

@@ -75,8 +75,8 @@ You can also use it directly in the browser through [unpkg's CDN](https://unpkg.
 <!DOCTYPE html>
 <html>
   <head>
-    <script src="https://unpkg.com/vue"></script>
-    <script src="https://unpkg.com/vue-picture-input"></script>
+    <script src="https://unpkg.com/vue@2"></script>
+    <script src="https://unpkg.com/vue-picture-input/dist/vue-picture-input.umd.js"></script>
     <title>In the browser!</title>
   </head>
   <body>

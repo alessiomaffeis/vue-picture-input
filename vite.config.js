@@ -10,11 +10,15 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, "PictureInput.vue"),
       name: "PictureInput",
-      fileName: (format) =>
-        `vue-picture-input.${format === "umd" ? "js" : format}`,
-      formats: ["umd"],
+      fileName: (format) => {
+        if (format === "es") return "vue-picture-input.es.js";
+        if (format === "cjs") return "vue-picture-input.cjs.js";
+        if (format === "umd") return "vue-picture-input.umd.js";
+        return `vue-picture-input.${format}.js`;
+      },
+      formats: ["es", "cjs", "umd"],
     },
-    outDir: "umd",
+    outDir: "dist",
     cssCodeSplit: false,
     rollupOptions: {
       external: ["vue"],
