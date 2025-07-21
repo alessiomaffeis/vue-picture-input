@@ -1,9 +1,8 @@
 {
   "name": "vue-picture-input",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Mobile-friendly picture file input component with image preview and drag and drop.",
-  "main": "dist/vue-picture-input.umd.js",
-  "module": "dist/vue-picture-input.es.js",
+  "main": "PictureInput.vue",
   "files": [
     "dist",
     "PictureInput.vue",
@@ -12,9 +11,7 @@
   ],
   "scripts": {
     "test": "jest",
-    "build": "rm -rf dist && npm run build:es && npm run build:umd",
-    "build:es": "BUILD_FORMAT=es vite build --mode production",
-    "build:umd": "BUILD_FORMAT=umd vite build --mode production",
+    "build": "vite build",
     "dev": "vite"
   },
   "repository": {
