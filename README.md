@@ -20,7 +20,7 @@ yarn add vue-picture-input
 
 ## Compatibility
 
-This component works with both **Vue 2** (2.6+) and **Vue 3** (3.0+). The component is written in Vue 2 style but is compatible with Vue 3 through Vue's compatibility features.
+This component works with both **Vue 2** (2.7+) and **Vue 3** (3.0+). The component is written in Vue 2 style (Options API) but is compatible with Vue 3.
 
 ## Usage
 
