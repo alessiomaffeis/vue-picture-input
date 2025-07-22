@@ -213,14 +213,19 @@ Try it on CodeSandbox: https://codesandbox.io/s/github/alessiomaffeis/vue-pictur
 - **click**: emitted on picture click.
 - **error**: emitted on error, along with an object with _type_, _message_, and optional additional parameters.
 
+## DeepWiki
+You can explore more about this procject on DeepWiki too:
+
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/alessiomaffeis/vue-picture-input)
+
+
 ## TODOs
 
-- Client-side resizing and cropping
 - Add tests
 
 ## Contributions
 
-All contributions are welcome, as long as they are within the scope of the project. Please open a new issue before submitting a pull request.
+Contributions are welcome, as long as they are within the scope of the project. Please open a new issue before submitting a pull request.
 
 You should follow the Javascript Standard Style guidelines:
 https://github.com/feross/standard/blob/master/RULES.md#javascript-standard-style
