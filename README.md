@@ -169,7 +169,7 @@ Try it on CodeSandbox: https://codesandbox.io/s/github/alessiomaffeis/vue-pictur
   Default value: 'btn btn-primary button'.
 - **removeButtonClass**: (string, optional) the class which will be applied to the 'Remove Photo' button.
   Default value: 'btn btn-secondary button secondary'.
-- **prefill**: (image url or File object, optional) use this to specify the path to a default image (or a File object) to prefill the input with. Default value: empty.
+- **prefill**: (image url or File object, optional) use this to specify the path to a default image (or a File object) to prefill the image preview with. Please note that it doesn't change the underlying file input value, this should be used for image preview only. Default value: empty.
 - **prefillOptions**: (object, optional) use this if you prefill with a data uri scheme to specify a file name and a media or file type:
 
 ```
