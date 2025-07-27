@@ -156,7 +156,7 @@ Try it on CodeSandbox: https://codesandbox.io/s/github/alessiomaffeis/vue-pictur
 ## Props
 
 - **width, height**: (pixels, optional) the maximum width and height of the preview container. The picture will be resized and centered to cover this area. If width is not specified, the preview container will expand to full width. If height is not specified, it will be set equal to width.
-- **crop**: (boolean, optional) set _:crop="false"_ if you wish to disable cropping. The image will be resized and centered in order to be fully contained in the preview container. Default value: true.
+- **crop**: (boolean, optional) set _:crop="false"_ if you wish to disable cropping. The image will be resized and centered in order to be fully contained in the preview container. Please note that this only affects the image preview; the image file will not be cropped. Default value: true.
 - **margin**: (pixels, optional) the margin around the preview container. Default value: 0.
 - **radius**: (percentage, optional) The border-radius value for the container. Set _radius="50"_ to get a circular container. Default value: 0.
 - **plain**: (boolean, optional) Set _:plain="true"_ to remove the inner border and text. Default value: false.
