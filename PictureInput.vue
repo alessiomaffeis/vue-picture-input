@@ -361,20 +361,22 @@ export default {
         return;
       }
 
-      this.file = files[0];
-      this.fileName = files[0].name;
-      this.fileSize = files[0].size;
-      this.fileModified = files[0].lastModified;
-      this.fileType = files[0].type.split(";")[0];
-
-      if (this.accept === "image/*") {
-        if (this.fileType.substr(0, 6) !== "image/") {
-          return;
+      this.file = files[0]
+      this.fileName = files[0].name
+      this.fileSize = files[0].size
+      this.fileModified = files[0].lastModified
+      this.fileType = files[0].type.split(';')[0]
+      const fileExtension = files[0].name.split('.').pop()
+      
+      if (this.accept === 'image/*') {
+        if (this.fileType.substr(0, 6) !== 'image/') {
+          return
         }
       } else {
-        if (this.fileTypes.indexOf(this.fileType) === -1) {
-          this.$emit("error", {
-            type: "fileType",
+        if (this.fileTypes.indexOf(this.fileType) === -1 &&
+            this.fileTypes.indexOf(fileExtension) === -1) {
+          this.$emit('error', {
+            type: 'fileType',
             fileSize: this.fileSize,
             fileType: this.fileType,
             fileName: this.fileName,
@@ -397,6 +399,7 @@ export default {
           this.$emit("change", this.image);
         }
       }
+      this.$emit('change', this.image)
     },
     loadImage(file, prefill) {
       this.getEXIFOrientation(file, (orientation) => {
