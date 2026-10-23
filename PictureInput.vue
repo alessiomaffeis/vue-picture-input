@@ -402,7 +402,6 @@ export default {
           this.$emit("change", this.image);
         }
       }
-      this.$emit('change', this.image)
     },
     loadImage(file, prefill) {
       this.getEXIFOrientation(file, (orientation) => {
