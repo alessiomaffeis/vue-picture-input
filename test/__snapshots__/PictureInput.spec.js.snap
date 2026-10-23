@@ -1,9 +1,7 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`PictureInput.vue matches snapshot 1`] = `
-<div id="picture-input" class="picture-input">
-  <div><button type="button" class="btn btn-primary button">
-      Select a Photo
-    </button></div> <input type="file" accept="image/*">
-</div>
+exports[`PictureInput.vue > matches snapshot 1`] = `
+"<div data-v-1b7b86b3="" id="picture-input" class="picture-input">
+  <div data-v-1b7b86b3=""><button data-v-1b7b86b3="" type="button" class="btn btn-primary button"> Select a Photo </button></div><input data-v-1b7b86b3="" type="file" accept="image/*">
+</div>"
 `;

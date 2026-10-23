@@ -10,7 +10,8 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "jest",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "build": "vite build",
     "dev": "vite"
   },
@@ -37,38 +38,14 @@
     "vue": "^2.7.0 || ^3.0.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.23.0",
-    "@babel/preset-env": "^7.23.0",
     "@vitejs/plugin-vue2": "^2.3.4",
     "@vue/test-utils": "^1.3.6",
-    "babel-jest": "^26.6.3",
-    "jest": "^26.6.3",
-    "jest-environment-jsdom": "^26.6.2",
-    "jest-serializer-vue": "^3.1.0",
+    "jsdom": "^30.1.3",
     "vite": "^7.3.7",
-    "vite-plugin-css-injected-by-js": "^3.5.2",
-    "vue": "^2.7.0",
-    "vue-jest": "^4.0.1",
-    "vue-server-renderer": "^2.7.0",
-    "vue-template-compiler": "^2.7.0"
-  },
-  "jest": {
-    "testEnvironment": "jsdom",
-    "testURL": "http://localhost/",
-    "moduleFileExtensions": [
-      "js",
-      "vue"
-    ],
-    "moduleNameMapper": {
-      "^@/(.*)$": "<rootDir>/src/$1"
-    },
-    "transform": {
-      "^.+\\.js$": "babel-jest",
-      ".*\\.(vue)$": "vue-jest"
-    },
-    "snapshotSerializers": [
-      "jest-serializer-vue"
-    ]
+    "vite-plugin-css-injected-by-js": "^4.0.1",
+    "vitest": "^5.0.5",
+    "vue": "^2.7.16",
+    "vue-template-compiler": "^2.7.16"
   },
   "unpkg": "dist/vue-picture-input.umd.js",
   "jsdelivr": "dist/vue-picture-input.umd.js"

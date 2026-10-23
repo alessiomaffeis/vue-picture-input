@@ -5,5 +5,5 @@ umd
 node_modules
 .git
 .gitignore
-babel.config.js
 vite.config.js
+vitest.config.js
