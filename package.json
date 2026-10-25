@@ -56,5 +56,8 @@
     "vue-tsc": "^3.3.13"
   },
   "unpkg": "dist/vue-picture-input.mjs",
-  "jsdelivr": "dist/vue-picture-input.mjs"
+  "jsdelivr": "dist/vue-picture-input.mjs",
+  "allowScripts": {
+    "fsevents@2.3.3": true
+  }
 }
