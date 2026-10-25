@@ -169,7 +169,11 @@ Try it on CodeSandbox: https://codesandbox.io/s/github/alessiomaffeis/vue-pictur
   Default value: 'btn btn-primary button'.
 - **removeButtonClass**: (string, optional) the class which will be applied to the 'Remove Photo' button.
   Default value: 'btn btn-secondary button secondary'.
-- **prefill**: (image url or File object, optional) use this to specify the path to a default image (or a File object) to prefill the image preview with. Please note that it doesn't change the underlying file input value, this should be used for image preview only. Default value: empty.
+- **prefill**: (image URL, data URI, File, or Blob, optional) use this to provide a default image for the preview. It doesn't change the underlying file input value; this is for image preview only. Default value: empty.
+
+  Loading a prefill preserves any existing native file selection, but updates `pictureInput.file` to the prefill source: a generated File for a URL/data URI, or the supplied File/Blob itself. A Blob is not automatically wrapped in a File; when it has no name or modification time, the component's `fileName` metadata is `""` and `fileModified` is `0`. Use the native input or `FormData` to inspect the form upload rather than the preview source. A prefill hides the no-preview selection-success message even when an older native selection is retained.
+
+  File/Blob prefills retain their direct-loading behavior and bypass the selected-file size/type checks; fetched URL/data-URI prefills pass through those checks. Explicit removal (the Remove Photo button or `removeImage()`) clears everything: the displayed image, exposed `file` reference, and native input, including any earlier selection retained underneath a prefill. It does not restore a previously displayed image.
 - **prefillOptions**: (object, optional) use this if you prefill with a data uri scheme to specify a file name and a media or file type:
 
 ```
@@ -207,11 +211,14 @@ Try it on CodeSandbox: https://codesandbox.io/s/github/alessiomaffeis/vue-pictur
 
 ## Events
 
-- **change**: emitted on (successful) picture change (prefill excluded). The image is passed along with the event as a Base64 Data URI string. If you need to access the underlying image from the parent component, add a _ref_ attribute to picture-input (see the example above). You may want to use _this.$refs.pictureInput.image_ (Base64 Data URI string) or _this.$refs.pictureInput.file_ (File Object)
+- **change**: emitted once on a successful user picture change (prefill excluded). With preview support, the payload is the image as a Base64 Data URI string. Without preview support, no Base64 image is generated: the payload can be `undefined` initially or `""` after removal. Use the exposed `file` or the native form input in that fallback. Add a _ref_ attribute to picture-input (see the example above) to access _this.$refs.pictureInput.image_ (Base64 Data URI when available) and _this.$refs.pictureInput.file_ (the current image source as a File or Blob, including prefills; not necessarily the native form selection).
 - **prefill**: emitted on default image prefill.
 - **remove**: emitted on picture remove.
 - **click**: emitted on picture click.
+- **aspectratiochange**: emitted when the aspect button manually toggles the canvas orientation, with `"landscape"` or `"portrait"` as its payload. Automatic matching through `autoToggleAspectRatio` does not emit this event.
 - **error**: emitted on error, along with an object with _type_, _message_, and optional additional parameters.
+
+Rejected selections and dropped files clear the native file input, so a form cannot submit the rejected file. The previous successful preview and exposed `file` reference are retained, but the native form field stays empty until a file is selected again. Invalid prefills leave the native input untouched.
 
 ## DeepWiki
 You can explore more about this procject on DeepWiki too:
@@ -219,9 +226,15 @@ You can explore more about this procject on DeepWiki too:
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/alessiomaffeis/vue-picture-input)
 
 
-## TODOs
+## Tests
 
-- Add tests
+```sh
+npm ci
+npm test
+npm run build
+```
+
+The regression suites run against both Vue 2 and Vue 3. See [test/README.md](test/README.md) for coverage, framework-specific commands, and browser-mocking details.
 
 ## Contributions
 

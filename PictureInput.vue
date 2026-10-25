@@ -50,7 +50,7 @@
         </div>
       </div>
       <button
-        v-if="imageSelected && !hideChangeButton"
+        v-if="(imageSelected || imagePreloaded) && !hideChangeButton"
         @click.prevent="selectImage"
         :class="buttonClass"
         type="button"
@@ -58,7 +58,7 @@
         {{ strings.change }}
       </button>
       <button
-        v-if="imageSelected && removable"
+        v-if="(imageSelected || imagePreloaded) && removable"
         @click.prevent="removeImage"
         :class="removeButtonClass"
         type="button"
@@ -66,7 +66,7 @@
         {{ strings.remove }}
       </button>
       <button
-        v-if="imageSelected && toggleAspectRatio && width !== height"
+        v-if="(imageSelected || imagePreloaded) && toggleAspectRatio && canvasWidth !== canvasHeight"
         @click.prevent="rotateImage"
         :class="aspectButtonClass"
         type="button"
@@ -76,7 +76,7 @@
     </div>
     <div v-else>
       <button
-        v-if="!imageSelected"
+        v-if="!(imageSelected || imagePreloaded)"
         @click.prevent="selectImage"
         :class="buttonClass"
         type="button"
@@ -84,7 +84,7 @@
         {{ strings.select }}
       </button>
       <div v-else>
-        <div v-html="strings.selected"></div>
+        <div v-if="imageSelected" v-html="strings.selected"></div>
         <button
           v-if="!hideChangeButton"
           @click.prevent="selectImage"
@@ -118,6 +118,7 @@
 <script>
 export default {
   name: "picture-input",
+  emits: ["change", "prefill", "remove", "click", "error", "aspectratiochange"],
   props: {
     width: {
       type: [String, Number],
@@ -283,10 +284,12 @@ export default {
     }
     this.canvasWidth =
       this.width != Number.MAX_SAFE_INTEGER
-        ? this.width
+        ? Number(this.width)
         : this.$refs.container.clientWidth;
     this.canvasHeight =
-      this.height != Number.MAX_SAFE_INTEGER ? this.height : this.canvasWidth;
+      this.height != Number.MAX_SAFE_INTEGER
+        ? Number(this.height)
+        : this.canvasWidth;
     this.previewWidth = this.canvasWidth;
     this.previewHeight = this.canvasHeight;
   },
@@ -305,7 +308,7 @@ export default {
       }
     },
     onClick() {
-      if (!this.imageSelected) {
+      if (!(this.imageSelected || this.imagePreloaded)) {
         this.selectImage();
         return;
       }
@@ -343,12 +346,14 @@ export default {
       if (!files.length) {
         return;
       }
-      if (files[0].size <= 0 || files[0].size > this.size * 1024 * 1024) {
+      const file = files[0];
+      if (file.size <= 0 || file.size > this.size * 1024 * 1024) {
+        if (!prefill) this.$refs.fileInput.value = "";
         this.$emit("error", {
           type: "fileSize",
-          fileSize: files[0].size,
-          fileType: files[0].type,
-          fileName: files[0].name,
+          fileSize: file.size,
+          fileType: file.type,
+          fileName: file.name,
           message: this.strings.fileSize + " (" + this.size + "MB)",
         });
         if (this.alertOnError) {
@@ -357,44 +362,44 @@ export default {
         return;
       }
       if (
-        files[0].name === this.fileName &&
-        files[0].size === this.fileSize &&
-        this.fileModified === files[0].lastModified
+        file.name === this.fileName &&
+        file.size === this.fileSize &&
+        this.fileModified === file.lastModified
       ) {
         return;
       }
 
-      this.file = files[0]
-      this.fileName = files[0].name
-      this.fileSize = files[0].size
-      this.fileModified = files[0].lastModified
-      this.fileType = files[0].type.split(';')[0]
-      const fileExtension = files[0].name.split('.').pop()
-      
-      if (this.accept === 'image/*') {
-        if (this.fileType.substr(0, 6) !== 'image/') {
-          return
+      const fileType = file.type.split(";")[0];
+      const fileExtension = file.name.split(".").pop();
+      const accepted =
+        this.accept === "image/*"
+          ? fileType.substr(0, 6) === "image/"
+          : this.fileTypes.indexOf(fileType) !== -1 ||
+            this.fileTypes.indexOf(fileExtension) !== -1;
+      if (!accepted) {
+        if (!prefill) this.$refs.fileInput.value = "";
+        this.$emit("error", {
+          type: "fileType",
+          fileSize: file.size,
+          fileType,
+          fileName: file.name,
+          message: this.strings.fileType,
+        });
+        if (this.alertOnError) {
+          alert(this.strings.fileType);
         }
-      } else {
-        if (this.fileTypes.indexOf(this.fileType) === -1 &&
-            this.fileTypes.indexOf(fileExtension) === -1) {
-          this.$emit('error', {
-            type: 'fileType',
-            fileSize: this.fileSize,
-            fileType: this.fileType,
-            fileName: this.fileName,
-            message: this.strings.fileType,
-          });
-          if (this.alertOnError) {
-            alert(this.strings.fileType);
-          }
-          return;
-        }
+        return;
       }
+
+      this.file = file;
+      this.fileName = file.name;
+      this.fileSize = file.size;
+      this.fileModified = file.lastModified;
+      this.fileType = fileType;
       this.imageSelected = !prefill;
-      this.imagePreloaded = prefill;
+      this.imagePreloaded = !!prefill;
       if (this.supportsPreview) {
-        this.loadImage(files[0], prefill || false);
+        this.loadImage(file, prefill || false);
       } else {
         if (prefill) {
           this.$emit("prefill");
@@ -504,6 +509,7 @@ export default {
       this.fileSize = 0;
       this.fileModified = 0;
       this.imageSelected = false;
+      this.imagePreloaded = false;
       this.image = "";
       this.file = null;
       this.imageObject = null;
@@ -630,6 +636,13 @@ export default {
       }
       options = Object.assign({}, options);
       if (typeof source === "object") {
+        // Update the preview source without changing the native form selection.
+        this.file = source;
+        this.fileName = source.name || "";
+        this.fileSize = source.size;
+        this.fileModified = source.lastModified || 0;
+        this.fileType = source.type.split(";")[0];
+        this.imageSelected = false;
         this.imagePreloaded = true;
         if (this.supportsPreview) {
           this.loadImage(source, true);
@@ -653,6 +666,9 @@ export default {
         headers: headers,
       })
         .then((response) => {
+          if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+          }
           return response.blob();
         })
         .then((imageBlob) => {
@@ -665,7 +681,6 @@ export default {
               (options.fileType ||
                 fileName.split("?")[0].split(".").slice(-1)[0].split("?")[0]);
           mediaType = mediaType.replace("jpg", "jpeg");
-          mediaType = mediaType.replace("image/svg", "image/svg+xml");
           if (mediaType === "image/svg") {
             mediaType = "image/svg+xml";
           }

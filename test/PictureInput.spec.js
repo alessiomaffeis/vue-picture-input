@@ -4,9 +4,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import PictureInput from '../PictureInput.vue'
 
 describe('PictureInput.vue', () => {
-  it('matches snapshot', () => {
+  it('matches snapshot', async () => {
     const wrapper = shallowMount(PictureInput)
     expect(wrapper.html()).toMatchSnapshot()
+    await wrapper.vm.$nextTick()
+    wrapper.destroy()
   })
 
   it('removes the resize listener when destroyed', async () => {
