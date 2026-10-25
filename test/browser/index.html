@@ -35,6 +35,7 @@
       const app = createApp({
         setup () {
           const picture = useTemplateRef('picture')
+          let unmounted = false
           function snapshot () {
             const instance = picture.value
             if (!instance) return null
@@ -48,6 +49,9 @@
               imageWidth: instance.imageWidth ?? null,
               imageHeight: instance.imageHeight ?? null,
               imageRatio: instance.imageRatio ?? null,
+              rotate: instance.rotate ?? null,
+              pixelRatio: instance.pixelRatio ?? null,
+              containerWidth: instance.containerWidth ?? null,
               selected: instance.imageSelected,
               preloaded: instance.imagePreloaded,
               canvasWidth: instance.canvasWidth,
@@ -71,13 +75,20 @@
           // imported unchanged; the parent output reads its live public refs.
           window.pictureFixture = {
             get picture () { return picture.value },
+            // Teardown tests must still see events after the DOM is removed.
+            get events () { return events.value },
             vueVersion: version,
             pixel,
             async updateProps (updates) {
               props.value = { ...props.value, ...updates }
               await nextTick()
             },
-            unmount () { app.unmount() }
+            async unmount () {
+              if (unmounted) return
+              unmounted = true
+              app.unmount()
+              await nextTick()
+            }
           }
           return () => h('main', [
             h('button', {
