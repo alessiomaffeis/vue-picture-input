@@ -14,8 +14,10 @@
     "typecheck": "vue-tsc --noEmit",
     "test:unit": "vitest run",
     "test:bundle": "npm run build && node --test test/esm.test.mjs",
+    "test:package": "npm run prepack && node --test test/package.test.mjs",
     "test:watch": "vitest",
     "build": "vite build",
+    "prepack": "npm run build",
     "dev": "vite"
   },
   "repository": {

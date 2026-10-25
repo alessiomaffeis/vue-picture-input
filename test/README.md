@@ -7,23 +7,27 @@ npm test
 npm run typecheck
 npm run test:unit
 npm run test:bundle
+npm run test:package
 npm run test:watch
 npm run build
 ```
 
 `npm test` runs strict SFC type checking with `vue-tsc --noEmit`, the source regression suite, then a fresh production build and its ESM smoke test. `typecheck` runs only checking; `test:unit` runs only the source suite (and accepts Vitest filters); `test:bundle` always rebuilds before checking the bundle. Watch mode runs only source tests.
 
+`test:package` runs the prepack build, then checks `npm pack --dry-run --json --ignore-scripts` for exactly the source SFC, ESM artifact, README, license, and package manifest. The dry run skips lifecycle scripts because the prepack build has already run. Missing entry files, old bundles, and unexpected development files fail the check. Normal `npm pack` and `npm publish` invoke the `prepack` build automatically.
+
 The source regression suites, including the snapshot and mounted event-timing tests in `PictureInput.spec.js`, compile and mount the real `PictureInput.vue` with Vue 3 and the official Vite Vue plugin. Tests do not construct Options API instances or override component computed values. Each case runs once; Vue 2 is no longer supported.
 
 ## Minimum-version coverage
 
-`.github/workflows/test.yml` runs the full type/source/build/ESM checks on Node 24 with both the locked Vue version and the declared minimum, Vue 3.5.0. The minimum leg asserts that both the installed Vue runtime and its SFC compiler are exactly 3.5.0 before running tests; merely printing a version is not sufficient. The minimum installation intentionally leaves the package manifest and lockfile unchanged. Reproduce that leg locally with:
+`.github/workflows/test.yml` runs the full type/source/build/ESM and package-content checks on Node 24 with both the locked Vue version and the declared minimum, Vue 3.5.0. The minimum leg asserts that both the installed Vue runtime and its SFC compiler are exactly 3.5.0 before running tests; merely printing a version is not sufficient. The minimum installation intentionally leaves the package manifest and lockfile unchanged. Reproduce that leg locally with:
 
 ```sh
 npm ci
 npm install --no-save --package-lock=false vue@3.5.0
 node -e "const assert = require('node:assert/strict'); assert.equal(require('vue/package.json').version, '3.5.0'); assert.equal(require('vue/compiler-sfc').version, '3.5.0');"
 npm test
+npm run test:package
 npm ci
 ```
 
@@ -33,6 +37,7 @@ This leg intentionally overlays the minimum runtime/compiler on the locked test 
 
 ## Coverage
 
+- `package.test.mjs`: checks npm's actual dry-run file list against the five allowed package files and verifies that the source/CDN entries are included. It is run separately through `test:package`, after the prepack build, on both CI matrix legs.
 - `esm.test.mjs`: Node's test runner dynamically imports the actual published ESM path with external production Vue, after installing a jsdom DOM. Verifies the default export without browser globals, a single ESM artifact with an external `vue` import, injected CSS, native FileReader selection/replacement, live reactive parent refs and metadata, public methods, Blob prefill identity versus retained native selection, removal and teardown. Globals and `NODE_ENV` are restored afterward. No source SFC or compiler test plugin is imported.
 
 - `PictureInput.spec.js`: unchanged markup snapshot, resize teardown, and first/replacement/prefill/no-preview event timing through mounted components.

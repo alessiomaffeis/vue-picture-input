@@ -31,4 +31,6 @@ jobs:
         if: matrix.vue == '3.5.0'
         run: node -e "const assert = require('node:assert/strict'); assert.equal(require('vue/package.json').version, '3.5.0'); assert.equal(require('vue/compiler-sfc').version, '3.5.0');"
       - run: npm test
+      - name: Check package contents
+        run: npm run test:package
       - run: git diff --exit-code -- package.json package-lock.json
