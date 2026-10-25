@@ -14,7 +14,7 @@
     "typecheck": "vue-tsc --noEmit",
     "test:unit": "vitest run",
     "test:bundle": "npm run test:browser",
-    "test:browser": "npm run build && playwright test",
+    "test:browser": "playwright test",
     "test:package": "npm run prepack && node --test test/package.test.mjs",
     "test:watch": "vitest",
     "build": "vite build",

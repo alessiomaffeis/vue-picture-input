@@ -15,7 +15,7 @@ npm run test:browser
 
 `npm test` runs strict SFC type checking, the source regression suites, and a fresh ESM build with package-content validation. It does not require a browser installation. `npm run test:package` runs just the prepack build and package-content check.
 
-Install Chromium once per Playwright version, then use `npm run test:browser` to build and test the actual ESM artifact in a real headless browser. The fixture serves Vue locally through an import map, so tests do not depend on a CDN. FileReader, image decoding, canvas, native inputs, and layout are not mocked. On Linux, `npx playwright install --with-deps chromium` can also install the browser's system dependencies.
+Install Chromium once per Playwright version, then use `npm run test:browser` to build and test the actual ESM artifact in a real headless browser. Playwright's managed-server startup owns the build, so direct `npx playwright test` and IDE/UI startup also rebuild rather than using stale output. Restart long-running UI/IDE test sessions after component/build-config edits; this is not a development watch server. The fixture serves Vue locally through an import map, so tests do not depend on a CDN. FileReader, image decoding, canvas, native inputs, and layout are not mocked. On Linux, `npx playwright install --with-deps chromium` can also install the browser's system dependencies.
 
 Useful individual commands:
 

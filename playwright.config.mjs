@@ -19,10 +19,10 @@ export default defineConfig({
   },
   projects: [{ name: "chromium", use: { browserName: "chromium" } }],
   webServer: {
-    command: "node test/browser/server.mjs",
+    command: "npm run build && node test/browser/server.mjs",
     url: baseURL,
     reuseExistingServer: false,
-    timeout: 10_000,
+    timeout: 30_000,
     gracefulShutdown: { signal: "SIGTERM", timeout: 1_000 },
   },
 });

@@ -1,13 +1,15 @@
 import { readFileSync, readdirSync } from 'node:fs'
-import { randomUUID } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
 import { expect, test } from '@playwright/test'
+import { expectPreviewGeometry } from './helpers/preview.mjs'
 
 const root = new URL('../../', import.meta.url)
 const pkg = JSON.parse(readFileSync(new URL('package.json', root), 'utf8'))
 const vue = JSON.parse(readFileSync(new URL(import.meta.resolve('vue/package.json')), 'utf8'))
 const images = JSON.parse(readFileSync(new URL('fixtures/images.json', import.meta.url), 'utf8'))
 const orientationImage = JSON.parse(readFileSync(new URL('fixtures/orientation.json', import.meta.url), 'utf8'))
+const geometryImages = JSON.parse(readFileSync(new URL('fixtures/geometry.json', import.meta.url), 'utf8'))
 const failures = new WeakMap()
 const red = [255, 0, 0, 255]
 const blue = [0, 0, 255, 255]
@@ -18,14 +20,15 @@ const orientations = [
   { value: 8, width: 64, height: 96, rotate: -Math.PI / 2, corners: [1, 3, 0, 2] }
 ]
 const photos = [
-  { name: 'landscape', width: 640, height: 424 },
-  { name: 'portrait', width: 640, height: 965 }
+  { name: 'landscape', width: 640, height: 424, sha256: 'c6f79819259297c204c4bb2a2843a17acaf0cb7b6143296504c0c9069a27ec61' },
+  { name: 'portrait', width: 640, height: 965, sha256: '1fb2301d56346be9196b622920524f1f8f21066adc3d57e43136b7607f9abbc3' }
 ].map(photo => {
   const file = new URL(`fixtures/${photo.name}.jpg`, import.meta.url)
   const bytes = readFileSync(file)
   return {
     ...photo, file: fileURLToPath(file), filename: photo.name + '.jpg', size: bytes.length,
     dataURL: 'data:image/jpeg;base64,' + bytes.toString('base64'),
+    actualSHA256: createHash('sha256').update(bytes).digest('hex'),
     previewWidth: photo.width > photo.height ? 400 : 200,
     previewHeight: photo.width > photo.height ? 200 : 400
   }
@@ -37,6 +40,10 @@ function payload (kind = 'landscape', name = kind + '.png') {
 
 function dataURL (kind) {
   return 'data:image/png;base64,' + images[kind].base64
+}
+
+function geometryPayload (kind = 'landscape') {
+  return { name: `geometry-${kind}.png`, mimeType: 'image/png', buffer: Buffer.from(geometryImages[kind].base64, 'base64') }
 }
 
 function orientedJPEG (orientation) {
@@ -70,7 +77,21 @@ function expectColors (pixels, corners) {
   })
 }
 
+async function expectGeometryPreview (page, kind, crop, width = 400, height = 200, pixelRatio = 1) {
+  const image = geometryImages[kind]
+  const visible = await expectPreviewGeometry(page, {
+    imageWidth: image.width, imageHeight: image.height, width, height, crop, pixelRatio, markerBand: geometryImages.band
+  })
+  const points = [[0.1, 0.1], [0.9, 0.1], [0.1, 0.9], [0.9, 0.9]].map(([x, y]) => [
+    (visible.left + (visible.right - visible.left) * x) / width,
+    (visible.top + (visible.bottom - visible.top) * y) / height
+  ])
+  expectColors(await canvasPixels(page, points), [0, 1, 2, 3])
+}
+
 async function resizeViewport (page, width) {
+  const viewport = page.viewportSize()
+  if (viewport?.width === width && viewport.height === 600) return
   await page.evaluate(() => {
     window.pictureFixture.resized = new Promise(resolve => {
       window.addEventListener('resize', () => resolve(), { once: true })
@@ -111,7 +132,22 @@ function submittedFile (page) {
   })
 }
 
+function retainNativeSelection (page) {
+  return page.locator('input[type=file]').evaluate(input => {
+    window.pictureFixture.nativeSelection = { input, files: input.files, file: input.files[0], value: input.value }
+  })
+}
+
+async function expectNativeSelectionRetained (page) {
+  expect(await page.locator('input[type=file]').evaluate(input => {
+    const retained = window.pictureFixture.nativeSelection
+    return input === retained.input && input.files === retained.files &&
+      input.files[0] === retained.file && input.value === retained.value
+  }), 'prefills must retain the native input, FileList, File, and value identities').toBe(true)
+}
+
 async function expectPhotoPreview (page, photo, crop) {
+  expect(photo.actualSHA256, `${photo.filename} original SHA-256`).toBe(photo.sha256)
   const current = await state(page)
   expect(current).toMatchObject({
     image: photo.dataURL, fileName: photo.filename, fileSize: photo.size, fileType: 'image/jpeg',
@@ -125,8 +161,8 @@ async function expectPhotoPreview (page, photo, crop) {
     return { complete: image.complete, width: image.naturalWidth, height: image.naturalHeight }
   })
   expect(decoded).toEqual({ complete: true, width: photo.width, height: photo.height })
-  expect(await page.locator('canvas').boundingBox()).toMatchObject({
-    width: photo.previewWidth, height: photo.previewHeight
+  await expectPreviewGeometry(page, {
+    imageWidth: photo.width, imageHeight: photo.height, width: photo.previewWidth, height: photo.previewHeight, crop
   })
   // Check coverage and photographic detail, not JPEG-specific RGB values or
   // screenshot baselines that can vary with decoder/rendering versions.
@@ -316,30 +352,52 @@ for (const source of ['selected', 'prefilled']) {
 }
 
 test('public and button aspect toggles and native viewport resizing preserve the image', async ({ page }) => {
-  await page.locator('input[type=file]').setInputFiles(payload())
+  const file = geometryPayload()
+  const image = 'data:image/png;base64,' + file.buffer.toString('base64')
+  await page.locator('input[type=file]').setInputFiles(file)
   await expectEvents(page, ['change'])
+  await expectGeometryPreview(page, 'landscape', true)
   await page.evaluate(() => window.pictureFixture.picture.rotateImage())
   await expectEvents(page, ['change', 'aspectratiochange'])
   expect((await events(page))[1].orientation).toBe('portrait')
   expect(await state(page)).toMatchObject({ canvasWidth: 200, canvasHeight: 400, previewWidth: 200, previewHeight: 400 })
+  // Inspect the newly drawn backing bitmap now, before a viewport resize can
+  // conceal a missing redraw by repairing it through the resize handler.
+  await expectGeometryPreview(page, 'landscape', true, 200, 400)
 
   await page.getByRole('button', { name: 'Landscape/Portrait', exact: true }).click()
   await expectEvents(page, ['change', 'aspectratiochange', 'aspectratiochange'])
   expect((await events(page))[2].orientation).toBe('landscape')
-  await page.setViewportSize({ width: 320, height: 600 })
-  await expect.poll(async () => (await state(page)).previewWidth).toBe(320)
+  expect(await state(page)).toMatchObject({ canvasWidth: 400, canvasHeight: 200, previewWidth: 400, previewHeight: 200 })
+  await expectGeometryPreview(page, 'landscape', true)
+  await resizeViewport(page, 320)
   expect(await state(page)).toMatchObject({
-    previewHeight: 160, image: dataURL('landscape'), fileName: 'landscape.png', sameAsNative: true
+    previewWidth: 320, previewHeight: 160, image, fileName: file.name, sameAsNative: true
   })
-  expect(await page.locator('canvas').boundingBox()).toMatchObject({ width: 320, height: 160 })
-  expect(await page.evaluate(() => window.pictureFixture.pixel())).toEqual(red)
+  await expectGeometryPreview(page, 'landscape', true, 320, 160)
   await expectEvents(page, ['change', 'aspectratiochange', 'aspectratiochange'])
+})
+
+test('resizing to the current viewport is a no-op without waiting for a missing resize event', async ({ page }) => {
+  await page.locator('input[type=file]').setInputFiles(payload())
+  await expectEvents(page, ['change'])
+  const previous = await state(page)
+  await resizeViewport(page, 800)
+  await resizeViewport(page, 800)
+  expect(await state(page)).toEqual(previous)
+  expect(await page.evaluate(() => Object.hasOwn(window.pictureFixture, 'resized'))).toBe(false)
+  await resizeViewport(page, 320)
+  await resizeViewport(page, 320)
+  expect(await state(page)).toMatchObject({ previewWidth: 320, previewHeight: 160 })
+  expect(await page.evaluate(() => window.pictureFixture.pixel())).toEqual(red)
+  await expectEvents(page, ['change'])
 })
 
 for (const kind of ['File', 'Blob']) {
   test(`${kind} prefills keep their identity and native selection; public and button removal clear everything`, async ({ page }) => {
     await page.locator('input[type=file]').setInputFiles(payload('portrait', 'selected.png'))
     await expectEvents(page, ['change'])
+    await retainNativeSelection(page)
     await page.evaluate(async kind => {
       const blob = await (await fetch('/photo.png')).blob()
       const source = kind === 'File' ? new File([blob], 'prefilled.png', { type: blob.type, lastModified: 42 }) : blob
@@ -349,6 +407,7 @@ for (const kind of ['File', 'Blob']) {
     await expectEvents(page, ['change', 'prefill'])
     expect((await events(page))[1].pixel).toEqual(red)
     expect(await page.evaluate(() => window.pictureFixture.picture.file === window.pictureFixture.prefillSource)).toBe(true)
+    await expectNativeSelectionRetained(page)
     expect(await state(page)).toMatchObject({
       image: dataURL('landscape'), fileName: kind === 'File' ? 'prefilled.png' : '',
       fileModified: kind === 'File' ? 42 : 0, selected: false, preloaded: true,
@@ -378,6 +437,7 @@ for (const kind of ['File', 'Blob']) {
 test('URL prop prefills use real fetch and preserve native upload until the prop is cleared', async ({ page }) => {
   await page.locator('input[type=file]').setInputFiles(payload('portrait', 'selected.png'))
   await expectEvents(page, ['change'])
+  await retainNativeSelection(page)
   const fetched = page.waitForRequest(request => {
     const url = new URL(request.url())
     return url.pathname === '/photo.png' && url.searchParams.has('_')
@@ -387,6 +447,7 @@ test('URL prop prefills use real fetch and preserve native upload until the prop
   }))
   expect((await fetched).headers().accept).toBe('image/*')
   await expectEvents(page, ['change', 'prefill'])
+  await expectNativeSelectionRetained(page)
   expect(await page.evaluate(() => window.pictureFixture.picture.file instanceof File)).toBe(true)
   expect(await state(page)).toMatchObject({
     image: dataURL('landscape'), fileName: 'remote.png', selected: false, preloaded: true,
@@ -436,7 +497,7 @@ test('an HTTP prefill failure preserves the decoded selection, source identity, 
 })
 
 for (const stage of ['headers', 'body']) {
-  test(`unmount aborts a native prefill with pending ${stage} and ignores a later server release`, async ({ page, request }) => {
+  test(`unmount aborts a native prefill with pending ${stage} and closes the connection silently`, async ({ page, request }) => {
     const id = randomUUID()
     const control = '/prefill-control?id=' + id
     const matches = request => {
@@ -454,7 +515,7 @@ for (const stage of ['headers', 'body']) {
       const headers = stage === 'body' ? page.waitForResponse(matches) : null
       await page.evaluate(prefill => window.pictureFixture.updateProps({ prefill }), `/delayed-prefill.jpg?id=${id}&stage=${stage}`)
       await expect.poll(async () => (await request.get(control)).json()).toMatchObject({
-        started: true, stage, cancelled: false, released: false
+        started: true, stage, cancelled: false, closed: false
       })
       if (headers) expect((await headers).status()).toBe(200)
       await expectEvents(page, ['change'])
@@ -464,12 +525,10 @@ for (const stage of ['headers', 'body']) {
       expect((await failed).failure().errorText).toBe('net::ERR_ABORTED')
       await expect(page.locator('#app')).toBeEmpty()
       await expect.poll(async () => (await request.get(control)).json()).toMatchObject({ cancelled: true, closed: true })
-      const released = await request.post(control)
-      expect(await released.json()).toMatchObject({ cancelled: true, closed: true, released: true })
-      // A render frame after the real network cancellation/release drains
-      // queued browser work without a time-based sleep or mocked callbacks.
+      // Observe the next frame after the native abort/connection close. This
+      // is not evidence about listener removal or queued late-success callbacks;
+      // those contracts are tested explicitly by the source lifecycle suites.
       const after = await page.evaluate(async () => {
-        window.dispatchEvent(new Event('resize'))
         await new Promise(resolve => requestAnimationFrame(resolve))
         const { retained } = window.pictureFixture
         return {
@@ -563,12 +622,14 @@ for (const photo of photos) {
     await page.evaluate(() => window.pictureFixture.updateProps({ autoToggleAspectRatio: true }))
     await page.locator('input[type=file]').setInputFiles(selected.file)
     await expectEvents(page, ['change'])
+    await retainNativeSelection(page)
     const response = page.waitForResponse(response => new URL(response.url()).pathname === '/' + photo.filename)
     await page.evaluate(filename => window.pictureFixture.updateProps({
       prefill: '/' + filename, prefillOptions: { fileName: filename }
     }), photo.filename)
     expect((await response).headers()['content-type']).toBe('image/jpeg')
     await expectEvents(page, ['change', 'prefill'])
+    await expectNativeSelectionRetained(page)
     await expectPhotoPreview(page, photo, true)
     expect(await state(page)).toMatchObject({
       selected: false, preloaded: true, nativeFile: { name: selected.filename }, sameAsNative: false
@@ -599,10 +660,24 @@ for (const orientation of orientations) {
       }
     })).toEqual({ complete: true, width: orientation.width, height: orientation.height, nativeOrientation: true })
     expectColors(await canvasPixels(page), orientation.corners)
-    expect((await events(page))[0].image).toBe('data:image/jpeg;base64,' + file.buffer.toString('base64'))
+    const changed = (await events(page))[0]
+    expect(changed.image).toBe('data:image/jpeg;base64,' + file.buffer.toString('base64'))
+    expect(changed.pixel[3], 'EXIF canvas is already painted when change fires').toBe(255)
+    expect(changed.pixel).toEqual(await page.evaluate(() => window.pictureFixture.pixel()))
     expect(await submittedFile(page)).toEqual({ name: file.name, size: file.buffer.length, type: 'image/jpeg' })
     await expectEvents(page, ['change'])
   })
+}
+
+for (const kind of ['landscape', 'portrait']) {
+  for (const crop of [true, false]) {
+    test(`geometry-${kind}.png preserves uniform scale and centered ${crop ? 'crop' : 'contain'} bounds`, async ({ page }) => {
+      await page.evaluate(crop => window.pictureFixture.updateProps({ crop }), crop)
+      await page.locator('input[type=file]').setInputFiles(geometryPayload(kind))
+      await expectEvents(page, ['change'])
+      await expectGeometryPreview(page, kind, crop)
+    })
+  }
 }
 
 test.describe('DPR 2', () => {
@@ -611,26 +686,18 @@ test.describe('DPR 2', () => {
   for (const crop of [true, false]) {
     test(`${crop ? 'cropped' : 'contained'} pixels stay centered in a doubled backing buffer through resize and removal`, async ({ page }) => {
       await page.evaluate(crop => window.pictureFixture.updateProps({ crop }), crop)
-      await page.locator('input[type=file]').setInputFiles(orientedJPEG(6))
+      await page.locator('input[type=file]').setInputFiles(geometryPayload('portrait'))
       await expectEvents(page, ['change'])
       expect(await page.evaluate(() => window.devicePixelRatio)).toBe(2)
-      // A contained 2:3 portrait occupies the middle third of this 2:1 canvas.
-      const points = crop ? [[0.25, 0.25], [0.75, 0.25], [0.25, 0.75], [0.75, 0.75]]
-        : [[5 / 12, 0.25], [7 / 12, 0.25], [5 / 12, 0.75], [7 / 12, 0.75]]
       for (const width of [400, 320]) {
         if (width === 320) await resizeViewport(page, width)
         expect(await state(page)).toMatchObject({ previewWidth: width, previewHeight: width / 2, pixelRatio: 2 })
-        expect(await page.locator('canvas').boundingBox()).toMatchObject({ width, height: width / 2 })
-        expect(await page.locator('canvas').evaluate(canvas => ({ width: canvas.width, height: canvas.height }))).toEqual({
-          width: width * 2, height: width
-        })
-        expectColors(await canvasPixels(page, points), [2, 0, 3, 1])
-        const edges = await canvasPixels(page, [[0.1, 0.5], [0.9, 0.5]])
-        expect(edges.map(pixel => pixel[3])).toEqual(crop ? [255, 255] : [0, 0])
+        await expectGeometryPreview(page, 'portrait', crop, width, width / 2, 2)
       }
       await page.getByRole('button', { name: 'Remove Photo', exact: true }).click()
       await expectEvents(page, ['change', 'remove'])
-      expect(await canvasPixels(page, points)).toEqual(Array(4).fill([0, 0, 0, 0]))
+      expect(await page.locator('canvas').evaluate(canvas => canvas.getContext('2d')
+        .getImageData(0, 0, canvas.width, canvas.height).data.every(channel => channel === 0))).toBe(true)
       expect(await page.locator('canvas').evaluate(canvas => ({ width: canvas.width, height: canvas.height }))).toEqual({
         width: 640, height: 320
       })

@@ -31,8 +31,8 @@ function send (request, response, status, type, body) {
 
 function pendingState (pending) {
   if (!pending) return { started: false }
-  const { stage, cancelled, closed, released } = pending
-  return { started: true, stage, cancelled, closed, released }
+  const { stage, cancelled, closed } = pending
+  return { started: true, stage, cancelled, closed }
 }
 
 const server = createServer((request, response) => {
@@ -46,17 +46,7 @@ const server = createServer((request, response) => {
       }
       const pending = pendingPrefills.get(id)
       if (pathname === '/prefill-control') {
-        if (request.method === 'POST' && pending) {
-          pending.released = true
-          if (!pending.response.destroyed) {
-            if (pending.stage === 'headers') {
-              pending.response.writeHead(200, {
-                'Content-Type': 'image/jpeg', 'Content-Length': delayedPhoto.length, 'Cache-Control': 'no-store'
-              })
-            }
-            pending.response.end(pending.stage === 'body' ? delayedPhoto.subarray(128) : delayedPhoto)
-          }
-        } else if (request.method === 'DELETE') {
+        if (request.method === 'DELETE') {
           pending?.response.destroy()
           pendingPrefills.delete(id)
         } else if (request.method !== 'GET') {
@@ -71,14 +61,14 @@ const server = createServer((request, response) => {
         send(request, response, 400, 'text/plain', 'Invalid delayed prefill')
         return
       }
-      const entry = { response, stage, cancelled: false, closed: false, released: false }
+      const entry = { response, stage, cancelled: false, closed: false }
       pendingPrefills.set(id, entry)
       response.once('close', () => {
         entry.closed = true
         entry.cancelled = !response.writableFinished
       })
-      // No timer: the test releases the response explicitly. Sending only a
-      // prefix lets native fetch resolve its headers while blob() stays pending.
+      // Hold the connection open until the browser aborts or the test cleans
+      // it up. A prefix resolves fetch's headers while blob() stays pending.
       if (stage === 'body') {
         response.writeHead(200, {
           'Content-Type': 'image/jpeg', 'Content-Length': delayedPhoto.length, 'Cache-Control': 'no-store'
