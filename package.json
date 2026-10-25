@@ -13,7 +13,7 @@
     "test": "npm run typecheck && npm run test:unit && npm run test:bundle",
     "typecheck": "vue-tsc --noEmit",
     "test:unit": "vitest run",
-    "test:bundle": "npm run build && node --test test/umd.test.cjs",
+    "test:bundle": "npm run build && node --test test/esm.test.mjs",
     "test:watch": "vitest",
     "build": "vite build",
     "dev": "vite"
@@ -51,6 +51,6 @@
     "vue": "^3.5.0",
     "vue-tsc": "^3.3.13"
   },
-  "unpkg": "dist/vue-picture-input.umd.js",
-  "jsdelivr": "dist/vue-picture-input.umd.js"
+  "unpkg": "dist/vue-picture-input.mjs",
+  "jsdelivr": "dist/vue-picture-input.mjs"
 }

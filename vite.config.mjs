@@ -9,19 +9,13 @@ export default defineConfig({
   build: {
     lib: {
       entry: fileURLToPath(new URL("./PictureInput.vue", import.meta.url)),
-      name: "PictureInput",
       fileName: "vue-picture-input",
-      formats: ["umd"],
+      formats: ["es"],
     },
     outDir: "dist",
     cssCodeSplit: false,
     rolldownOptions: {
       external: ["vue"],
-      output: {
-        globals: {
-          vue: "Vue",
-        },
-      },
     },
   },
 });

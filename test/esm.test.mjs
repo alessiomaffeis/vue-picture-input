@@ -1,29 +1,34 @@
-const assert = require('node:assert/strict')
-const { readFileSync } = require('node:fs')
-const { resolve } = require('node:path')
-const test = require('node:test')
-const { JSDOM, VirtualConsole } = require('jsdom')
-const { nativeFiles } = require('./helpers/native-files.cjs')
+import assert from 'node:assert/strict'
+import { readFileSync, readdirSync } from 'node:fs'
+import test from 'node:test'
+import { JSDOM, VirtualConsole } from 'jsdom'
+import { nativeFiles } from './helpers/native-files.cjs'
 
-test('published UMD mounts with global Vue, injects CSS, and preserves the live public API', { timeout: 5000 }, async t => {
+test('published ESM imports external Vue, injects CSS, and preserves the live public API', { timeout: 5000 }, async t => {
   const errors = []
   const console = new VirtualConsole()
   console.on('jsdomError', error => errors.push(error))
   const dom = new JSDOM('<div id="app"></div>', {
-    runScripts: 'outside-only', url: 'http://localhost/', virtualConsole: console
+    url: 'http://localhost/', virtualConsole: console
   })
   const window = dom.window
+  const originalGlobals = new Map()
+  const originalNodeEnv = process.env.NODE_ENV
   let app
   t.after(() => {
     try {
       if (app) app.unmount()
     } finally {
       window.close()
+      for (const [name, descriptor] of originalGlobals) {
+        if (descriptor) Object.defineProperty(globalThis, name, descriptor)
+        else delete globalThis[name]
+      }
+      if (originalNodeEnv === undefined) delete process.env.NODE_ENV
+      else process.env.NODE_ENV = originalNodeEnv
     }
   })
 
-  window.eval(readFileSync(require.resolve('vue/dist/vue.global.prod.js'), 'utf8'))
-  assert.equal(window.Vue.version, require('vue/package.json').version)
   const context = Object.fromEntries([
     'scale', 'setTransform', 'clearRect', 'translate', 'rotate', 'drawImage'
   ].map(name => [name, () => {}]))
@@ -36,10 +41,34 @@ test('published UMD mounts with global Vue, injects CSS, and preserves the live 
     removeAttribute () {}
   }
 
-  const pkg = require('../package.json')
+  // Vue captures document at import time. Install the DOM before importing
+  // either the external production runtime or the real ESM build.
+  for (const name of [
+    'window', 'document', 'navigator', 'Node', 'Element', 'SVGElement',
+    'HTMLElement', 'HTMLCanvasElement', 'File', 'Blob', 'FileReader',
+    'Image', 'CanvasRenderingContext2D'
+  ]) {
+    originalGlobals.set(name, Object.getOwnPropertyDescriptor(globalThis, name))
+    Object.defineProperty(globalThis, name, {
+      configurable: true, writable: true, value: name === 'window' ? window : window[name]
+    })
+  }
+  process.env.NODE_ENV = 'production'
+  const Vue = await import('vue')
+  const installedVue = JSON.parse(readFileSync(new URL(import.meta.resolve('vue/package.json')), 'utf8'))
+  assert.equal(Vue.version, installedVue.version)
+
+  const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
+  assert.equal(pkg.main, 'PictureInput.vue')
+  assert.equal(pkg.unpkg, 'dist/vue-picture-input.mjs')
   assert.equal(pkg.unpkg, pkg.jsdelivr)
-  window.eval(readFileSync(resolve(__dirname, '..', pkg.unpkg), 'utf8'))
-  assert.ok(window.PictureInput, 'bundle exports the PictureInput global')
+  assert.deepEqual(readdirSync(new URL('../dist/', import.meta.url)), ['vue-picture-input.mjs'])
+  const bundleUrl = new URL('../' + pkg.unpkg, import.meta.url)
+  assert.match(readFileSync(bundleUrl, 'utf8'), /from\s*["']vue["']/, 'Vue remains an external ESM import')
+  const { default: PictureInput } = await import(bundleUrl.href)
+  assert.ok(PictureInput, 'bundle provides a default ESM export')
+  assert.equal(window.Vue, undefined, 'no Vue browser global is required')
+  assert.equal(window.PictureInput, undefined, 'no component browser global is created')
   const events = []
   const orientations = []
   let loaded
@@ -58,18 +87,18 @@ test('published UMD mounts with global Vue, injects CSS, and preserves the live 
       window.clearTimeout(timer)
     }
   }
-  app = window.Vue.createApp({
+  app = Vue.createApp({
     setup () {
-      const picture = window.Vue.useTemplateRef('picture')
-      return () => window.Vue.h('div', [
-        window.Vue.h(window.PictureInput, {
+      const picture = Vue.useTemplateRef('picture')
+      return () => Vue.h('div', [
+        Vue.h(PictureInput, {
           ref: 'picture', name: 'photo', removable: true, width: 400, height: 200,
           onChange: image => { events.push(['change', image]); loaded(image) },
           onPrefill: () => { events.push(['prefill']); prefilled() },
           onRemove: () => events.push(['remove']),
           onAspectratiochange: orientation => orientations.push(orientation)
         }),
-        window.Vue.h('output', { id: 'public-state' }, JSON.stringify(picture.value ? {
+        Vue.h('output', { id: 'public-state' }, JSON.stringify(picture.value ? {
           image: picture.value.image, name: picture.value.fileName,
           size: picture.value.fileSize, type: picture.value.fileType,
           modified: picture.value.fileModified
@@ -102,7 +131,7 @@ test('published UMD mounts with global Vue, injects CSS, and preserves the live 
   assert.equal(picture.image, image)
 
   const renderedState = () => JSON.parse(window.document.querySelector('#public-state').textContent)
-  await window.Vue.nextTick()
+  await Vue.nextTick()
   assert.deepEqual(renderedState(), {
     image, name: file.name, size: file.size, type: file.type, modified: file.lastModified
   })
@@ -117,7 +146,7 @@ test('published UMD mounts with global Vue, injects CSS, and preserves the live 
   const replacementImage = await waitFor(changed)
   assert.equal(replacementImage, 'data:image/png;base64,AQIDBA==')
   assert.equal(picture.file, replacement)
-  await window.Vue.nextTick()
+  await Vue.nextTick()
   assert.deepEqual(renderedState(), {
     image: replacementImage, name: replacement.name, size: 4, type: 'image/png', modified: 42
   })
@@ -125,12 +154,12 @@ test('published UMD mounts with global Vue, injects CSS, and preserves the live 
   const prefill = new window.Blob([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], { type: 'image/png' })
   picture.preloadImage(prefill)
   await waitFor(prefillDone)
-  await window.Vue.nextTick()
+  await Vue.nextTick()
   assert.equal(picture.file, prefill)
   assert.equal(input.files[0], replacement, 'prefill retains the native selection')
   assert.deepEqual(renderedState(), { image, name: '', size: 4, type: 'image/png', modified: 0 })
   picture.removeImage()
-  await window.Vue.nextTick()
+  await Vue.nextTick()
   assert.equal(input.files.length, 0)
   assert.equal(picture.file, null)
   assert.deepEqual(renderedState(), { image: '', name: '', size: 0, type: '', modified: 0 })
@@ -140,11 +169,11 @@ test('published UMD mounts with global Vue, injects CSS, and preserves the live 
   input.dispatchEvent(new window.Event('change', { bubbles: true }))
   await waitFor(changed)
 
-  await window.Vue.nextTick()
+  await Vue.nextTick()
   const remove = [...window.document.querySelectorAll('button')].find(button => button.textContent.trim() === 'Remove Photo')
   assert.ok(remove, 'remove button becomes available')
   remove.click()
-  await window.Vue.nextTick()
+  await Vue.nextTick()
   assert.equal(input.files.length, 0)
   assert.equal(picture.file, null)
   assert.equal(picture.image, '')

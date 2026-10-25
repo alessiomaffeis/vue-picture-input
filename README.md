@@ -22,7 +22,9 @@ yarn add vue-picture-input
 
 Version 5 requires **Vue 3.5 or newer within Vue 3**. Vue 2 support has been removed; Vue 2 applications should remain on `vue-picture-input@4`.
 
-The component uses the typed Composition API with `<script setup lang="ts">`. It works with both Options API and Composition API parents; its props, events, exposed instance API, browser fallbacks, and UMD distribution remain compatible. The default package entry is still the source Vue SFC, so use a Vue build tool that supports TypeScript in SFCs.
+The component uses the typed Composition API with `<script setup lang="ts">`. It works with both Options API and Composition API parents; its props, events, exposed instance API, and browser fallbacks remain compatible. The default package entry is still the source Vue SFC, so use a Vue build tool that supports TypeScript in SFCs.
+
+The prebuilt distribution is **ESM-only** in v5 (`dist/vue-picture-input.mjs`). UMD bundles and the `PictureInput` browser global are no longer provided. Vue remains an external dependency, and the prebuilt module injects its CSS automatically.
 
 ## Usage
 
@@ -121,14 +123,29 @@ const onChange = (newImage) => {
 </script>
 ```
 
-You can also use it directly in the browser through [unpkg's CDN](https://unpkg.com/vue-picture-input) (or [jsDelivr](https://cdn.jsdelivr.net/npm/vue-picture-input)):
+### Prebuilt ESM
+
+To import the precompiled component without an SFC loader:
+
+```js
+import PictureInput from 'vue-picture-input/dist/vue-picture-input.mjs'
+```
+
+### Browser ESM (CDN)
+
+You can also use it directly in the browser through [unpkg's CDN](https://unpkg.com/vue-picture-input) (or [jsDelivr](https://cdn.jsdelivr.net/npm/vue-picture-input)). Use a module script and an import map so the component's external `vue` import resolves to the same Vue instance as your application:
 
 ```html
 <!DOCTYPE html>
 <html>
   <head>
-    <script src="https://unpkg.com/vue@3.5/dist/vue.global.js"></script>
-    <script src="https://unpkg.com/vue-picture-input@5/dist/vue-picture-input.umd.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "vue": "https://unpkg.com/vue@3.5/dist/vue.esm-browser.prod.js"
+        }
+      }
+    </script>
     <title>In the browser!</title>
   </head>
   <body>
@@ -136,8 +153,11 @@ You can also use it directly in the browser through [unpkg's CDN](https://unpkg.
       <p>{{ message }}</p>
       <picture-input></picture-input>
     </div>
-    <script>
-      var app = Vue.createApp({
+    <script type="module">
+      import { createApp } from "vue";
+      import PictureInput from "https://unpkg.com/vue-picture-input@5/dist/vue-picture-input.mjs";
+
+      const app = createApp({
         data() {
           return { message: "Hello Vue!" };
         },
@@ -257,7 +277,7 @@ npm run typecheck
 npm run build
 ```
 
-`npm test` runs strict SFC type checking, the Vue 3 source regression suites, and a fresh production UMD smoke test covering its global export, injected styles, reactive parent refs, and selection/prefill/removal behavior. `npm run typecheck` runs checking alone. CI runs the full pipeline with both the locked Vue version and the Vue 3.5.0 minimum. See [test/README.md](test/README.md) for individual commands, minimum-version reproduction steps, coverage, and browser-mocking details.
+`npm test` runs strict SFC type checking, the Vue 3 source regression suites, and a fresh production ESM smoke test covering its default export, external Vue import, injected styles, reactive parent refs, and selection/prefill/removal behavior. `npm run typecheck` runs checking alone. CI runs the full pipeline with both the locked Vue version and the Vue 3.5.0 minimum. See [test/README.md](test/README.md) for individual commands, minimum-version reproduction steps, coverage, and browser-mocking details.
 
 ## Contributions
 
