@@ -1,6 +1,6 @@
 # vue-picture-input
 
-Mobile-friendly picture file input component for Vue.js 2 & 3 with image preview, drag and drop, EXIF orientation, and more.
+Mobile-friendly picture file input component for Vue 3 with image preview, drag and drop, EXIF orientation, and more.
 
 ![vue-pictur-input-demo](https://user-images.githubusercontent.com/2185511/167262626-5f10679f-70cf-4477-865a-508c67bca44e.gif)
 
@@ -20,11 +20,15 @@ yarn add vue-picture-input
 
 ## Compatibility
 
-This component works with both **Vue 2** (2.7+) and **Vue 3** (3.0+). The component is written in Vue 2 style (Options API) but is compatible with Vue 3.
+Version 5 requires **Vue 3.5 or newer within Vue 3**. Vue 2 support has been removed; Vue 2 applications should remain on `vue-picture-input@4`.
+
+The component uses the typed Composition API with `<script setup lang="ts">`. It works with both Options API and Composition API parents; its props, events, exposed instance API, and browser fallbacks remain compatible. The default package entry is still the source Vue SFC, so use a Vue build tool that supports TypeScript in SFCs.
+
+The prebuilt distribution is **ESM-only** in v5 (`dist/vue-picture-input.mjs`). UMD bundles and the `PictureInput` browser global are no longer provided. Vue remains an external dependency, and the prebuilt module injects its CSS automatically.
 
 ## Usage
 
-### Vue 2 & Vue 3 (Options API)
+### Vue 3 (Options API)
 
 ```HTML
 <template>
@@ -119,14 +123,29 @@ const onChange = (newImage) => {
 </script>
 ```
 
-You can also use it directly in the browser through [unpkg's CDN](https://unpkg.com/vue-picture-input) (or [jsDelivr](https://cdn.jsdelivr.net/npm/vue-picture-input)):
+### Prebuilt ESM
+
+To import the precompiled component without an SFC loader:
+
+```js
+import PictureInput from 'vue-picture-input/dist/vue-picture-input.mjs'
+```
+
+### Browser ESM (CDN)
+
+You can also use it directly in the browser through [unpkg's CDN](https://unpkg.com/vue-picture-input) (or [jsDelivr](https://cdn.jsdelivr.net/npm/vue-picture-input)). Use a module script and an import map so the component's external `vue` import resolves to the same Vue instance as your application:
 
 ```html
 <!DOCTYPE html>
 <html>
   <head>
-    <script src="https://unpkg.com/vue@2"></script>
-    <script src="https://unpkg.com/vue-picture-input/dist/vue-picture-input"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "vue": "https://unpkg.com/vue@3.5/dist/vue.esm-browser.prod.js"
+        }
+      }
+    </script>
     <title>In the browser!</title>
   </head>
   <body>
@@ -134,16 +153,19 @@ You can also use it directly in the browser through [unpkg's CDN](https://unpkg.
       <p>{{ message }}</p>
       <picture-input></picture-input>
     </div>
-    <script>
-      var app = new Vue({
-        el: "#app",
-        data: {
-          message: "Hello Vue!",
+    <script type="module">
+      import { createApp } from "vue";
+      import PictureInput from "https://unpkg.com/vue-picture-input@5/dist/vue-picture-input.mjs";
+
+      const app = createApp({
+        data() {
+          return { message: "Hello Vue!" };
         },
         components: {
           "picture-input": PictureInput,
         },
       });
+      app.mount("#app");
     </script>
   </body>
 </html>
@@ -151,7 +173,7 @@ You can also use it directly in the browser through [unpkg's CDN](https://unpkg.
 
 ## Example project
 
-Try it on CodeSandbox: https://codesandbox.io/s/github/alessiomaffeis/vue-picture-input-example
+https://codesandbox.io/s/github/alessiomaffeis/vue-picture-input-example
 
 ## Props
 
@@ -169,7 +191,11 @@ Try it on CodeSandbox: https://codesandbox.io/s/github/alessiomaffeis/vue-pictur
   Default value: 'btn btn-primary button'.
 - **removeButtonClass**: (string, optional) the class which will be applied to the 'Remove Photo' button.
   Default value: 'btn btn-secondary button secondary'.
-- **prefill**: (image url or File object, optional) use this to specify the path to a default image (or a File object) to prefill the image preview with. Please note that it doesn't change the underlying file input value, this should be used for image preview only. Default value: empty.
+- **prefill**: (image URL, data URI, File, or Blob, optional) use this to provide a default image for the preview. It doesn't change the underlying file input value; this is for image preview only. Default value: empty.
+
+  Loading a prefill preserves any existing native file selection, but updates `pictureInput.file` to the prefill source: a generated File for a URL/data URI, or the supplied File/Blob itself. A Blob is not automatically wrapped in a File; when it has no name or modification time, the component's `fileName` metadata is `""` and `fileModified` is `0`. Use the native input or `FormData` to inspect the form upload rather than the preview source. A prefill hides the no-preview selection-success message even when an older native selection is retained.
+
+  File/Blob prefills retain their direct-loading behavior and bypass the selected-file size/type checks; fetched URL/data-URI prefills pass through those checks. Explicit removal (the Remove Photo button or `removeImage()`) clears everything: the displayed image, exposed `file` reference, and native input, including any earlier selection retained underneath a prefill. It does not restore a previously displayed image.
 - **prefillOptions**: (object, optional) use this if you prefill with a data uri scheme to specify a file name and a media or file type:
 
 ```
@@ -205,13 +231,36 @@ Try it on CodeSandbox: https://codesandbox.io/s/github/alessiomaffeis/vue-pictur
 }
 ```
 
+## Component refs
+
+Parent refs expose live, reactive values through `defineExpose`, with no extra `.value` on the component's members:
+
+```js
+// Options API parent
+this.$refs.pictureInput.file
+this.$refs.pictureInput.removeImage()
+
+// Composition API parent (pictureInput is the parent's template ref)
+pictureInput.value.image
+pictureInput.value.removeImage()
+```
+
+`image` is initially `undefined` and becomes `""` on removal. `file` is initially `undefined` and becomes `null` on removal. File metadata is available as `fileName`, `fileSize`, `fileType`, and `fileModified`. The public methods `selectImage()`, `removeImage()`, `rotateImage()`, and `preloadImage(source, options)` remain callable; existing props, state, computed values, and helper methods are also retained for compatibility. Browser File/Blob objects retain their identity, including direct prefills.
+
+The exposed `strings` object remains deeply reactive: direct edits update the UI, and `updateStrings()` applies custom strings in place so retained references stay current.
+
+Unmounting removes the resize listener and cancels pending reads, image decoding callbacks, and abortable prefill fetches without emitting cancellation errors. This does not introduce SSR/hydration support or change overlapping-load ordering.
+
 ## Events
 
-- **change**: emitted on (successful) picture change (prefill excluded). The image is passed along with the event as a Base64 Data URI string. If you need to access the underlying image from the parent component, add a _ref_ attribute to picture-input (see the example above). You may want to use _this.$refs.pictureInput.image_ (Base64 Data URI string) or _this.$refs.pictureInput.file_ (File Object)
+- **change**: emitted once on a successful user picture change (prefill excluded). With preview support, the payload is the image as a Base64 Data URI string. Without preview support, no Base64 image is generated: the payload can be `undefined` initially or `""` after removal. Use the exposed `file` or the native form input in that fallback. Add a _ref_ attribute to picture-input (see the example above) to access _this.$refs.pictureInput.image_ (Base64 Data URI when available) and _this.$refs.pictureInput.file_ (the current image source as a File or Blob, including prefills; not necessarily the native form selection).
 - **prefill**: emitted on default image prefill.
 - **remove**: emitted on picture remove.
 - **click**: emitted on picture click.
+- **aspectratiochange**: emitted when the aspect button manually toggles the canvas orientation, with `"landscape"` or `"portrait"` as its payload. Automatic matching through `autoToggleAspectRatio` does not emit this event.
 - **error**: emitted on error, along with an object with _type_, _message_, and optional additional parameters.
+
+Rejected selections and dropped files clear the native file input, so a form cannot submit the rejected file. The previous successful preview and exposed `file` reference are retained, but the native form field stays empty until a file is selected again. Invalid prefills leave the native input untouched.
 
 ## DeepWiki
 You can explore more about this procject on DeepWiki too:
@@ -219,13 +268,21 @@ You can explore more about this procject on DeepWiki too:
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/alessiomaffeis/vue-picture-input)
 
 
-## TODOs
+## Tests
 
-- Add tests
+```sh
+npm ci
+npm test
+npx playwright install chromium
+npm run test:browser
+```
+
+`npm test` runs strict SFC type checking, the Vue 3 source regression suites, and a fresh production build with package-content checks. It does not require a browser. `npm run test:browser` builds the actual ESM artifact and tests it in Chromium with real image decoding, canvas rendering, file inputs, native FormData, and layout. Vue is served locally through an import map; no CDN is required. `test:bundle` remains an alias for the browser suite.
+
+CI runs source/package checks with locked Vue and the Vue 3.5.0 minimum, plus a separate Chromium job using locked Vue. `npm run typecheck` and `npm run test:package` run individual checks. The `prepack` hook rebuilds automatically before `npm pack` or `npm publish`. See [test/README.md](test/README.md) for setup, coverage, debugging, and minimum-version reproduction commands.
 
 ## Contributions
 
 Contributions are welcome, as long as they are within the scope of the project. Please open a new issue before submitting a pull request.
 
-You should follow the Javascript Standard Style guidelines:
-https://github.com/feross/standard/blob/master/RULES.md#javascript-standard-style
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the Node.js 24 development workflow and formatting conventions.

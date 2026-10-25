@@ -1,27 +1,21 @@
 import { defineConfig } from "vite";
-import vue from "@vitejs/plugin-vue2";
+import vue from "@vitejs/plugin-vue";
 import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 
-import { resolve } from "path";
+import { fileURLToPath } from "node:url";
 
 export default defineConfig({
   plugins: [vue(), cssInjectedByJsPlugin()],
   build: {
     lib: {
-      entry: resolve(__dirname, "PictureInput.vue"),
-      name: "PictureInput",
+      entry: fileURLToPath(new URL("./PictureInput.vue", import.meta.url)),
       fileName: "vue-picture-input",
-      formats: ["umd"],
+      formats: ["es"],
     },
     outDir: "dist",
     cssCodeSplit: false,
-    rollupOptions: {
+    rolldownOptions: {
       external: ["vue"],
-      output: {
-        globals: {
-          vue: "Vue",
-        },
-      },
     },
   },
 });

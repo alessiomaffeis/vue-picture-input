@@ -1,6 +1,6 @@
 {
   "name": "vue-picture-input",
-  "version": "4.0.4",
+  "version": "5.0.0",
   "description": "Mobile-friendly picture file input component with image preview and drag and drop.",
   "main": "PictureInput.vue",
   "files": [
@@ -10,9 +10,15 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "vitest run",
+    "test": "npm run typecheck && npm run test:unit && npm run test:package",
+    "typecheck": "vue-tsc --noEmit",
+    "test:unit": "vitest run",
+    "test:bundle": "npm run test:browser",
+    "test:browser": "playwright test",
+    "test:package": "npm run prepack && node --test test/package.test.mjs",
     "test:watch": "vitest",
     "build": "vite build",
+    "prepack": "npm run build",
     "dev": "vite"
   },
   "repository": {
@@ -35,18 +41,23 @@
   },
   "homepage": "https://github.com/alessiomaffeis/vue-picture-input",
   "peerDependencies": {
-    "vue": "^2.7.0 || ^3.0.0"
+    "vue": "^3.5.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue2": "^2.3.4",
-    "@vue/test-utils": "^1.3.6",
+    "@playwright/test": "^1.64.1",
+    "@vitejs/plugin-vue": "^6.0.0",
+    "@vue/test-utils": "^2.5.1",
     "jsdom": "^30.1.3",
-    "vite": "^7.3.7",
-    "vite-plugin-css-injected-by-js": "^4.0.1",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.5",
+    "vite-plugin-css-injected-by-js": "^5.0.2",
     "vitest": "^5.0.5",
-    "vue": "^2.7.16",
-    "vue-template-compiler": "^2.7.16"
+    "vue": "^3.5.0",
+    "vue-tsc": "^3.3.13"
   },
-  "unpkg": "dist/vue-picture-input.umd.js",
-  "jsdelivr": "dist/vue-picture-input.umd.js"
+  "unpkg": "dist/vue-picture-input.mjs",
+  "jsdelivr": "dist/vue-picture-input.mjs",
+  "allowScripts": {
+    "fsevents@2.3.3": true
+  }
 }

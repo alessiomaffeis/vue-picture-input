@@ -1,9 +1,0 @@
-.babelrc
-test
-dev
-umd
-node_modules
-.git
-.gitignore
-vite.config.js
-vitest.config.js

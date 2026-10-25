@@ -1,0 +1,12 @@
+{
+  "landscape": {
+    "width": 40,
+    "height": 20,
+    "base64": "iVBORw0KGgoAAAANSUhEUgAAACgAAAAUCAYAAAD/Rn+7AAAAL0lEQVR4nO3OMQ0AAAjAsPk3DSrIOHb0LwPzGXagYEE7ULCgHShY0A4ULGgHCl5biXs6G0TdvUkAAAAASUVORK5CYII="
+  },
+  "portrait": {
+    "width": 20,
+    "height": 40,
+    "base64": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAYAAAD+MdrbAAAAJklEQVR4nO3MoQEAAAwCIP9/2h3hIoFKkvaXUCgUCoVCoVAoFE4OlJc6G5AHtKsAAAAASUVORK5CYII="
+  }
+}
