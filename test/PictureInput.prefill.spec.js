@@ -95,7 +95,7 @@ describe('prefill lifecycle', () => {
   it.each([true, false].flatMap(preview => sources.map(([kind, source]) => [preview, kind, source])))(
     'exposes the prefill source while retaining the native selection (preview=%s, source=%s)',
     async (preview, kind, source) => {
-      if (!preview) vi.stubGlobal('CanvasRenderingContext2D', undefined)
+      if (!preview) browser.disablePreview()
       const wrapper = mountPictureInput({
         name: 'photo',
         customStrings: { selected: '<strong class="selection-success">Selected</strong>' }
@@ -156,7 +156,7 @@ describe('prefill lifecycle', () => {
   it.each([
     [true, 'network'], [true, 'HTTP'], [false, 'network'], [false, 'HTTP']
   ])('preserves an existing selection after a preload failure (preview=%s, failure=%s)', async (preview, failure) => {
-    if (!preview) vi.stubGlobal('CanvasRenderingContext2D', undefined)
+    if (!preview) browser.disablePreview()
     const wrapper = mountPictureInput({ name: 'photo', alertOnError: false })
     const form = document.createElement('form')
     form.append(wrapper.element)
@@ -211,7 +211,7 @@ describe('prefill lifecycle', () => {
     [false, 'URL', 'fileType'], [false, 'URL', 'fileSize'],
     [false, 'data URI', 'fileType'], [false, 'data URI', 'fileSize']
   ])('rejects a fetched prefill without changing the existing selection (preview=%s, source=%s, error=%s)', async (preview, source, errorType) => {
-    if (!preview) vi.stubGlobal('CanvasRenderingContext2D', undefined)
+    if (!preview) browser.disablePreview()
     const wrapper = mountPictureInput({
       name: 'photo', size: 1, alertOnError: false, prefillOptions: { fileName: 'rejected.png' }
     })
@@ -324,7 +324,7 @@ describe('prefill lifecycle', () => {
     ['URL', () => 'https://example.test/photo.png'],
     ['File', () => makeFile()]
   ])('emits only prefill for a %s without preview support', async (kind, source) => {
-    vi.stubGlobal('CanvasRenderingContext2D', undefined)
+    browser.disablePreview()
     const wrapper = mountPictureInput({ prefill: source() })
     await flushAsync()
 

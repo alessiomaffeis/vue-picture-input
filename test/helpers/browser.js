@@ -8,12 +8,16 @@ export function useBrowserMocks () {
 
   beforeEach(() => {
     browser.NativeFileReader = window.FileReader
+    browser.touchDescriptor = Object.getOwnPropertyDescriptor(window, 'ontouchstart')
+    browser.touchPointsDescriptor = Object.getOwnPropertyDescriptor(navigator, 'msMaxTouchPoints')
     browser.readers = []
     browser.images = []
     browser.containerWidth = 640
-    browser.context = Object.fromEntries([
+    const makeContext = () => Object.fromEntries([
       'scale', 'setTransform', 'clearRect', 'translate', 'rotate', 'drawImage'
     ].map(name => [name, vi.fn()]))
+    browser.context = makeContext()
+    browser.contexts = new Map()
     browser.alert = vi.fn()
     browser.fetch = vi.fn().mockResolvedValue({
       ok: true,
@@ -24,20 +28,35 @@ export function useBrowserMocks () {
     class MockFileReader {
       constructor () {
         browser.readers.push(this)
+        this.readyState = 0
         this.readAsArrayBuffer = vi.fn(blob => {
           this.blob = blob
           this.kind = 'arrayBuffer'
+          this.readyState = 1
         })
         this.readAsDataURL = vi.fn(blob => {
           this.blob = blob
           this.kind = 'dataURL'
+          this.readyState = 1
+        })
+        this.abort = vi.fn(() => {
+          if (this.readyState !== 1) return
+          this.aborted = true
+          this.finished = true
+          this.readyState = 2
+          this.result = null
+          this.onabort?.({ target: this })
+          this.onloadend?.({ target: this })
         })
       }
 
       finish (result) {
+        if (this.aborted) return
         this.finished = true
+        this.readyState = 2
         this.result = result
-        this.onload({ target: this })
+        this.onload?.({ target: this })
+        this.onloadend?.({ target: this })
       }
     }
 
@@ -46,13 +65,16 @@ export function useBrowserMocks () {
         this.width = 400
         this.height = 200
         this.style = {}
+        this.removeAttribute = vi.fn(name => {
+          if (name === 'src') delete this.src
+        })
         browser.images.push(this)
       }
 
       finish ({ width = 400, height = 200 } = {}) {
         this.width = width
         this.height = height
-        this.onload()
+        this.onload?.()
       }
     }
 
@@ -62,7 +84,12 @@ export function useBrowserMocks () {
     vi.stubGlobal('devicePixelRatio', 1)
     vi.stubGlobal('alert', browser.alert)
     vi.stubGlobal('fetch', browser.fetch)
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(browser.context)
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(function () {
+      if (!browser.contexts.has(this)) {
+        browser.contexts.set(this, browser.contexts.size === 0 ? browser.context : makeContext())
+      }
+      return browser.contexts.get(this)
+    })
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(() => browser.containerWidth)
   })
 
@@ -70,7 +97,36 @@ export function useBrowserMocks () {
     await cleanupComponents()
     vi.restoreAllMocks()
     vi.unstubAllGlobals()
+    if (browser.touchDescriptor) {
+      Object.defineProperty(window, 'ontouchstart', browser.touchDescriptor)
+    } else {
+      delete window.ontouchstart
+    }
+    if (browser.touchPointsDescriptor) {
+      Object.defineProperty(navigator, 'msMaxTouchPoints', browser.touchPointsDescriptor)
+    } else {
+      delete navigator.msMaxTouchPoints
+    }
   })
+
+  browser.disablePreview = (api = 'canvas') => {
+    vi.stubGlobal(api === 'canvas' ? 'CanvasRenderingContext2D' : 'FileReader', undefined)
+  }
+
+  browser.disableUpload = (api = 'userAgent') => {
+    if (api === 'userAgent') {
+      vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue('Android 2.1')
+    } else {
+      vi.spyOn(HTMLInputElement.prototype, 'disabled', 'get').mockReturnValue(true)
+    }
+  }
+
+  browser.setDragAndDrop = supported => {
+    // The component checks property presence, not its value.
+    if (supported) delete window.ontouchstart
+    else Object.defineProperty(window, 'ontouchstart', { configurable: true, value: null })
+    Object.defineProperty(navigator, 'msMaxTouchPoints', { configurable: true, value: supported ? 0 : 1 })
+  }
 
   browser.finishEXIF = (buffer = pngBytes.buffer) => {
     const reader = browser.readers.find(reader => reader.kind === 'arrayBuffer' && !reader.finished)

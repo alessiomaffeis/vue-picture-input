@@ -72,7 +72,7 @@ describe('removal and reselection', () => {
   it.each([
     [true, 'URL'], [true, 'File'], [false, 'URL'], [false, 'File']
   ])('explicit removal clears a selection retained under a prefill (preview=%s, source=%s)', async (preview, source) => {
-    if (!preview) vi.stubGlobal('CanvasRenderingContext2D', undefined)
+    if (!preview) browser.disablePreview()
     const wrapper = mountPictureInput({ name: 'photo', removable: true, changeOnClick: false })
     const form = document.createElement('form')
     form.append(wrapper.element)
@@ -113,7 +113,7 @@ describe('removal and reselection', () => {
   })
 
   it('removes and reselects without preview support, emitting an empty image after removal', async () => {
-    vi.stubGlobal('CanvasRenderingContext2D', undefined)
+    browser.disablePreview()
     const wrapper = mountPictureInput({ removable: true })
     const file = makeFile()
     await selectFile(wrapper, file)

@@ -1,28 +1,29 @@
 import { mount } from '@vue/test-utils'
-import { h, nextTick } from 'vue'
+import { h, nextTick, shallowRef, useTemplateRef } from 'vue'
 
 import PictureInput from '../../PictureInput.vue'
 
 const wrappers = new Set()
 
-export function mountPictureInput (props = {}, computed = {}) {
-  const component = {
-    ...PictureInput,
-    computed: { ...PictureInput.computed, ...computed }
-  }
-  const wrapper = mount(component, { props })
+export function mountPictureInput (props = {}) {
+  const wrapper = mount(PictureInput, { props })
   wrappers.add(wrapper)
   return wrapper
 }
 
-export function mountWithParent (props = {}, listeners = {}) {
+export function mountWithParent (props = {}, listeners = {}, renderExposed) {
   const parent = {
-    data: () => ({ pictureProps: props }),
-    render () {
+    setup (_, { expose }) {
+      const pictureProps = shallowRef(props)
+      const pictureInput = useTemplateRef('pictureInput')
       const events = Object.fromEntries(Object.entries(listeners).map(([name, handler]) => [
         'on' + name[0].toUpperCase() + name.slice(1), handler
       ]))
-      return h('div', [h(PictureInput, { ...this.pictureProps, ref: 'pictureInput', ...events })])
+      expose({ pictureProps })
+      return () => h('div', [
+        h(PictureInput, { ...pictureProps.value, ref: 'pictureInput', ...events }),
+        renderExposed ? renderExposed(pictureInput.value) : null
+      ])
     }
   }
   const wrapper = mount(parent)
@@ -36,8 +37,6 @@ export function unmount (wrapper) {
 }
 
 export async function cleanupComponents () {
-  // Let mounted's deferred resize subscription finish before tearing it down.
-  await nextTick()
   for (const wrapper of wrappers) unmount(wrapper)
   await nextTick()
 }

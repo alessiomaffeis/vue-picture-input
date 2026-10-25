@@ -22,7 +22,7 @@ yarn add vue-picture-input
 
 Version 5 requires **Vue 3.5 or newer within Vue 3**. Vue 2 support has been removed; Vue 2 applications should remain on `vue-picture-input@4`.
 
-The component continues to use the Options API. Its props, events, exposed refs, and browser fallbacks are unchanged by the Vue 3-only migration.
+The component uses the typed Composition API with `<script setup lang="ts">`. It works with both Options API and Composition API parents; its props, events, exposed instance API, browser fallbacks, and UMD distribution remain compatible. The default package entry is still the source Vue SFC, so use a Vue build tool that supports TypeScript in SFCs.
 
 ## Usage
 
@@ -211,6 +211,26 @@ https://codesandbox.io/s/github/alessiomaffeis/vue-picture-input-example
 }
 ```
 
+## Component refs
+
+Parent refs expose live, reactive values through `defineExpose`, with no extra `.value` on the component's members:
+
+```js
+// Options API parent
+this.$refs.pictureInput.file
+this.$refs.pictureInput.removeImage()
+
+// Composition API parent (pictureInput is the parent's template ref)
+pictureInput.value.image
+pictureInput.value.removeImage()
+```
+
+`image` is initially `undefined` and becomes `""` on removal. `file` is initially `undefined` and becomes `null` on removal. File metadata is available as `fileName`, `fileSize`, `fileType`, and `fileModified`. The public methods `selectImage()`, `removeImage()`, `rotateImage()`, and `preloadImage(source, options)` remain callable; existing props, state, computed values, and helper methods are also retained for compatibility. Browser File/Blob objects retain their identity, including direct prefills.
+
+The exposed `strings` object remains deeply reactive: direct edits update the UI, and `updateStrings()` applies custom strings in place so retained references stay current.
+
+Unmounting removes the resize listener and cancels pending reads, image decoding callbacks, and abortable prefill fetches without emitting cancellation errors. This does not introduce SSR/hydration support or change overlapping-load ordering.
+
 ## Events
 
 - **change**: emitted once on a successful user picture change (prefill excluded). With preview support, the payload is the image as a Base64 Data URI string. Without preview support, no Base64 image is generated: the payload can be `undefined` initially or `""` after removal. Use the exposed `file` or the native form input in that fallback. Add a _ref_ attribute to picture-input (see the example above) to access _this.$refs.pictureInput.image_ (Base64 Data URI when available) and _this.$refs.pictureInput.file_ (the current image source as a File or Blob, including prefills; not necessarily the native form selection).
@@ -233,10 +253,11 @@ You can explore more about this procject on DeepWiki too:
 ```sh
 npm ci
 npm test
+npm run typecheck
 npm run build
 ```
 
-`npm test` runs the Vue 3 source regression suites, builds the production UMD artifact, and smoke-tests its global export, injected styles, and selection/removal behavior. CI runs these checks with both the locked Vue version and the Vue 3.5.0 minimum. See [test/README.md](test/README.md) for individual commands, minimum-version reproduction steps, coverage, and browser-mocking details.
+`npm test` runs strict SFC type checking, the Vue 3 source regression suites, and a fresh production UMD smoke test covering its global export, injected styles, reactive parent refs, and selection/prefill/removal behavior. `npm run typecheck` runs checking alone. CI runs the full pipeline with both the locked Vue version and the Vue 3.5.0 minimum. See [test/README.md](test/README.md) for individual commands, minimum-version reproduction steps, coverage, and browser-mocking details.
 
 ## Contributions
 

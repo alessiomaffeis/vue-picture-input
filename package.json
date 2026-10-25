@@ -10,7 +10,8 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "npm run test:unit && npm run test:bundle",
+    "test": "npm run typecheck && npm run test:unit && npm run test:bundle",
+    "typecheck": "vue-tsc --noEmit",
     "test:unit": "vitest run",
     "test:bundle": "npm run build && node --test test/umd.test.cjs",
     "test:watch": "vitest",
@@ -43,10 +44,12 @@
     "@vitejs/plugin-vue": "^6.0.0",
     "@vue/test-utils": "^2.5.1",
     "jsdom": "^30.1.3",
+    "typescript": "^5.9.3",
     "vite": "^7.3.7",
     "vite-plugin-css-injected-by-js": "^4.0.1",
     "vitest": "^5.0.5",
-    "vue": "^3.5.0"
+    "vue": "^3.5.0",
+    "vue-tsc": "^3.3.13"
   },
   "unpkg": "dist/vue-picture-input.umd.js",
   "jsdelivr": "dist/vue-picture-input.umd.js"

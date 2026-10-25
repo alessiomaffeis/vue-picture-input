@@ -47,7 +47,7 @@ describe('picker and drag-and-drop interactions', () => {
   })
 
   it.each([true, false])('opens the change button picker with clicks disabled and preview=%s', async preview => {
-    if (!preview) vi.stubGlobal('CanvasRenderingContext2D', undefined)
+    if (!preview) browser.disablePreview()
     const wrapper = mountPictureInput({ changeOnClick: false })
     await selectFile(wrapper, makeFile())
     if (preview) browser.finishLoading()
@@ -58,7 +58,8 @@ describe('picker and drag-and-drop interactions', () => {
   })
 
   it('highlights supported drag targets and clears the highlight on leaving', async () => {
-    const wrapper = mountPictureInput({}, { supportsDragAndDrop: () => true })
+    browser.setDragAndDrop(true)
+    const wrapper = mountPictureInput()
     await wrapper.find('canvas').trigger('dragenter')
     expect(wrapper.find('canvas').classes()).toContain('dragging-over')
     await wrapper.find('canvas').trigger('dragleave')
@@ -66,7 +67,8 @@ describe('picker and drag-and-drop interactions', () => {
   })
 
   it('does not highlight drag targets when drag-and-drop is unsupported', async () => {
-    const wrapper = mountPictureInput({}, { supportsDragAndDrop: () => false })
+    browser.setDragAndDrop(false)
+    const wrapper = mountPictureInput()
     await wrapper.find('canvas').trigger('dragenter')
     expect(wrapper.vm.draggingOver).toBe(false)
     expect(wrapper.find('canvas').classes()).not.toContain('dragging-over')
@@ -80,7 +82,8 @@ describe('picker and drag-and-drop interactions', () => {
   })
 
   it('loads dropped files through the same decoded change path', async () => {
-    const wrapper = mountPictureInput({}, { supportsDragAndDrop: () => true })
+    browser.setDragAndDrop(true)
+    const wrapper = mountPictureInput()
     const file = makeFile()
     const files = [file]
     const input = wrapper.find('input').element

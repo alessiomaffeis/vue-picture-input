@@ -1,7 +1,10 @@
 import { shallowMount } from '@vue/test-utils'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import PictureInput from '../PictureInput.vue'
+import { useBrowserMocks } from './helpers/browser.js'
+import { mountPictureInput, selectFile } from './helpers/component.js'
+import { imageData, makeFile, otherImageData } from './helpers/fixtures.js'
 
 describe('PictureInput.vue', () => {
   it('matches snapshot', async () => {
@@ -26,76 +29,50 @@ describe('PictureInput.vue', () => {
   })
 
   describe('file change events', () => {
-    const image = 'data:image/png;base64,aW1hZ2U='
-    let vm
-    let readAsDataURL
+    const browser = useBrowserMocks()
 
-    beforeEach(() => {
-      readAsDataURL = vi.spyOn(FileReader.prototype, 'readAsDataURL').mockImplementation(() => {})
-      vm = {
-        ...PictureInput.data(),
-        ...PictureInput.methods,
-        accept: 'image/*',
-        size: 1,
-        supportsPreview: true,
-        getEXIFOrientation: vi.fn((file, callback) => callback(-1)),
-        drawImage: vi.fn(),
-        $emit: vi.fn()
+    it.each([false, true])('emits one change after decoding (replacement: %s)', async replacement => {
+      const wrapper = mountPictureInput({ size: 1 })
+      if (replacement) {
+        await selectFile(wrapper, makeFile({ name: 'previous.png' }))
+        browser.finishLoading({ data: otherImageData })
       }
-    })
+      const previousEvents = replacement ? [[otherImageData]] : []
+      const file = makeFile()
+      await selectFile(wrapper, file)
 
-    afterEach(() => {
-      vi.restoreAllMocks()
-    })
+      expect(wrapper.emitted('change') || []).toEqual(previousEvents)
+      browser.finishEXIF()
+      const reader = browser.readers.at(-1)
+      expect(reader.readAsDataURL).toHaveBeenCalledWith(file)
+      expect(wrapper.emitted('change') || []).toEqual(previousEvents)
 
-    function selectFile (prefill) {
-      const file = new File(['image'], 'image.png', { type: 'image/png' })
-      vm.onFileChange({ target: { files: [file] } }, prefill)
-      return file
-    }
+      browser.finishDataURL()
+      expect(wrapper.emitted('change') || []).toEqual(previousEvents)
+      browser.images.at(-1).finish()
 
-    function finishReadingImage () {
-      const reader = readAsDataURL.mock.instances[0]
-      reader.onload({ target: { result: image } })
-    }
-
-    it.each([undefined, 'data:image/png;base64,b2xk'])('emits one change after decoding (previous image: %s)', (previousImage) => {
-      vm.image = previousImage
-
-      const file = selectFile(false)
-
-      expect(readAsDataURL).toHaveBeenCalledWith(file)
-      expect(vm.$emit).not.toHaveBeenCalled()
-
-      finishReadingImage()
-      expect(vm.$emit).not.toHaveBeenCalled()
-
-      vm.imageObject.onload()
-
-      expect(vm.drawImage).toHaveBeenCalledWith(vm.imageObject)
-      expect(vm.$emit.mock.calls).toEqual([['change', image]])
+      expect(browser.context.drawImage).toHaveBeenLastCalledWith(browser.images.at(-1), -320, 0, 1280, 640)
+      expect(wrapper.emitted('change')).toEqual([...previousEvents, [imageData]])
     })
 
     it('emits only prefill after decoding a prefilled image', () => {
-      selectFile(true)
-
-      expect(vm.$emit).not.toHaveBeenCalled()
-
-      finishReadingImage()
-      expect(vm.$emit).not.toHaveBeenCalled()
-
-      vm.imageObject.onload()
-
-      expect(vm.$emit.mock.calls).toEqual([['prefill']])
+      const wrapper = mountPictureInput({ prefill: makeFile() })
+      expect(wrapper.emitted()).toEqual({})
+      browser.finishEXIF()
+      expect(wrapper.emitted()).toEqual({})
+      browser.finishDataURL()
+      expect(wrapper.emitted()).toEqual({})
+      browser.images[0].finish()
+      expect(wrapper.emitted()).toEqual({ prefill: [[]] })
     })
 
-    it.each([false, true])('emits one event without preview support (prefill: %s)', (prefill) => {
-      vm.supportsPreview = false
-
-      selectFile(prefill)
-
-      expect(readAsDataURL).not.toHaveBeenCalled()
-      expect(vm.$emit.mock.calls).toEqual(prefill ? [['prefill']] : [['change', undefined]])
+    it.each([false, true])('emits one event without preview support (prefill: %s)', async prefill => {
+      browser.disablePreview()
+      const file = makeFile()
+      const wrapper = mountPictureInput(prefill ? { prefill: file } : {})
+      if (!prefill) await selectFile(wrapper, file)
+      expect(browser.readers).toHaveLength(0)
+      expect(wrapper.emitted()).toEqual(prefill ? { prefill: [[]] } : { change: [[undefined]] })
     })
   })
 })

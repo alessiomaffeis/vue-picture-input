@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { useBrowserMocks } from './helpers/browser.js'
 import { mountPictureInput } from './helpers/component.js'
@@ -14,7 +14,7 @@ describe('rejected native form selections', () => {
     [true, 'drop', 'fileType'], [true, 'drop', 'fileSize'],
     [false, 'drop', 'fileType'], [false, 'drop', 'fileSize']
   ])('clears rejected files with preview=%s, route=%s, error=%s', async (preview, route, errorType) => {
-    if (!preview) vi.stubGlobal('CanvasRenderingContext2D', undefined)
+    if (!preview) browser.disablePreview()
     const wrapper = mountPictureInput({ name: 'photo', size: 1, alertOnError: false })
     const form = document.createElement('form')
     form.append(wrapper.element)

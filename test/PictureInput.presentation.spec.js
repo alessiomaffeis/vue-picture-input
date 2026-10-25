@@ -38,7 +38,7 @@ describe('documented props and presentation', () => {
     [true, false, false], [true, true, false], [true, false, true], [true, true, true],
     [false, false, false], [false, true, false], [false, false, true], [false, true, true]
   ])('shows controls with preview=%s, removable=%s, hideChangeButton=%s', async (preview, removable, hideChangeButton) => {
-    if (!preview) vi.stubGlobal('CanvasRenderingContext2D', undefined)
+    if (!preview) browser.disablePreview()
     const wrapper = mountPictureInput({ removable, hideChangeButton })
     expect(findButton(wrapper, 'Change Photo')).toBeUndefined()
     expect(findButton(wrapper, 'Remove Photo')).toBeUndefined()
@@ -95,7 +95,7 @@ describe('documented props and presentation', () => {
   })
 
   it.each([false, true])('provides prefill controls without preview, hidden change=%s', async hideChangeButton => {
-    vi.stubGlobal('CanvasRenderingContext2D', undefined)
+    browser.disablePreview()
     const wrapper = mountPictureInput({ prefill: makeFile(), removable: true, hideChangeButton, changeOnClick: false })
     await flushAsync()
     expect(findButton(wrapper, 'Select a Photo')).toBeUndefined()
@@ -106,7 +106,7 @@ describe('documented props and presentation', () => {
   })
 
   it.each(['URL', 'File'])('does not announce a file selection for a no-preview %s prefill', async source => {
-    vi.stubGlobal('CanvasRenderingContext2D', undefined)
+    browser.disablePreview()
     const wrapper = mountPictureInput({
       prefill: source === 'URL' ? 'https://example.test/default.png' : makeFile(),
       customStrings: { selected: '<strong class="selection-success">Photo successfully selected!</strong>' }
@@ -136,7 +136,7 @@ describe('documented props and presentation', () => {
   })
 
   it('keeps the initial select button available when change buttons are hidden', () => {
-    vi.stubGlobal('FileReader', undefined)
+    browser.disablePreview('fileReader')
     const wrapper = mountPictureInput({ hideChangeButton: true, buttonClass: 'custom-select' })
     expect(findButton(wrapper, 'Select a Photo').classes()).toContain('custom-select')
     expect(wrapper.find('canvas').exists()).toBe(false)
@@ -144,16 +144,15 @@ describe('documented props and presentation', () => {
 
   it.each(['upload', 'drag', 'tap', 'selected'])('renders HTML allowed in customStrings.%s', async key => {
     const customStrings = { [key]: '<strong class="custom-copy">Custom message</strong>' }
-    const computed = {}
     if (key === 'upload') {
-      computed.supportsUpload = () => false
-      computed.supportsPreview = () => false
+      browser.disableUpload()
+      browser.disablePreview()
     } else if (key === 'selected') {
-      computed.supportsPreview = () => false
+      browser.disablePreview()
     } else {
-      computed.supportsDragAndDrop = () => key === 'drag'
+      browser.setDragAndDrop(key === 'drag')
     }
-    const wrapper = mountPictureInput({ customStrings }, computed)
+    const wrapper = mountPictureInput({ customStrings })
     if (key === 'selected') await selectFile(wrapper, makeFile())
     await flushAsync()
     expect(wrapper.find('strong.custom-copy').text()).toBe('Custom message')
@@ -165,7 +164,8 @@ describe('documented props and presentation', () => {
       width: 400, height: 200, removable: true, toggleAspectRatio: true,
       customStrings: { [key]: label }
     }
-    const wrapper = mountPictureInput(props, key === 'select' ? { supportsPreview: () => false } : {})
+    if (key === 'select') browser.disablePreview()
+    const wrapper = mountPictureInput(props)
     if (key !== 'select') {
       await selectFile(wrapper, makeFile())
       browser.finishLoading()
@@ -189,7 +189,7 @@ describe('documented props and presentation', () => {
   })
 
   it('provides the documented no-FileReader selection fallback', async () => {
-    vi.stubGlobal('FileReader', undefined)
+    browser.disablePreview('fileReader')
     const wrapper = mountPictureInput()
     const openPicker = vi.spyOn(wrapper.find('input').element, 'click').mockImplementation(() => {})
     await findButton(wrapper, 'Select a Photo').trigger('click')
@@ -200,5 +200,14 @@ describe('documented props and presentation', () => {
     expect(wrapper.emitted('change')).toEqual([[undefined]])
     expect(wrapper.vm.file).toBeDefined()
     expect(browser.readers).toHaveLength(0)
+  })
+
+  it('shows the unsupported-upload message when file inputs are disabled', async () => {
+    browser.disableUpload('input')
+    browser.disablePreview()
+    const wrapper = mountPictureInput()
+    await flushAsync()
+    expect(wrapper.text()).toContain('Your device does not support file uploading.')
+    expect(wrapper.find('canvas').exists()).toBe(false)
   })
 })
