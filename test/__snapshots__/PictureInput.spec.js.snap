@@ -2,6 +2,6 @@
 
 exports[`PictureInput.vue > matches snapshot 1`] = `
 "<div data-v-1b7b86b3="" id="picture-input" class="picture-input">
-  <div data-v-1b7b86b3=""><button data-v-1b7b86b3="" type="button" class="btn btn-primary button"> Select a Photo </button></div><input data-v-1b7b86b3="" type="file" accept="image/*">
+  <div data-v-1b7b86b3=""><button data-v-1b7b86b3="" class="btn btn-primary button" type="button">Select a Photo</button></div><input data-v-1b7b86b3="" type="file" accept="image/*">
 </div>"
 `;

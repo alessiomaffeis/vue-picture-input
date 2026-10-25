@@ -8,17 +8,17 @@ describe('PictureInput.vue', () => {
     const wrapper = shallowMount(PictureInput)
     expect(wrapper.html()).toMatchSnapshot()
     await wrapper.vm.$nextTick()
-    wrapper.destroy()
+    wrapper.unmount()
   })
 
-  it('removes the resize listener when destroyed', async () => {
+  it('removes the resize listener when unmounted', async () => {
     const addListener = vi.spyOn(window, 'addEventListener')
     const removeListener = vi.spyOn(window, 'removeEventListener')
     const wrapper = shallowMount(PictureInput)
     await wrapper.vm.$nextTick()
     const resizeListener = addListener.mock.calls.find(([event]) => event === 'resize')[1]
 
-    wrapper.destroy()
+    wrapper.unmount()
 
     expect(removeListener).toHaveBeenCalledWith('resize', resizeListener)
     addListener.mockRestore()

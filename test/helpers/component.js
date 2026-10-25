@@ -1,9 +1,8 @@
-import { mount } from '@test-utils'
-import { h, nextTick, version } from 'vue'
+import { mount } from '@vue/test-utils'
+import { h, nextTick } from 'vue'
 
 import PictureInput from '../../PictureInput.vue'
 
-export const isVue3 = version.startsWith('3.')
 const wrappers = new Set()
 
 export function mountPictureInput (props = {}, computed = {}) {
@@ -11,7 +10,7 @@ export function mountPictureInput (props = {}, computed = {}) {
     ...PictureInput,
     computed: { ...PictureInput.computed, ...computed }
   }
-  const wrapper = mount(component, isVue3 ? { props } : { propsData: props })
+  const wrapper = mount(component, { props })
   wrappers.add(wrapper)
   return wrapper
 }
@@ -20,15 +19,10 @@ export function mountWithParent (props = {}, listeners = {}) {
   const parent = {
     data: () => ({ pictureProps: props }),
     render () {
-      if (isVue3) {
-        const events = Object.fromEntries(Object.entries(listeners).map(([name, handler]) => [
-          'on' + name[0].toUpperCase() + name.slice(1), handler
-        ]))
-        return h('div', [h(PictureInput, { ...this.pictureProps, ref: 'pictureInput', ...events })])
-      }
-      return this.$createElement('div', [this.$createElement(PictureInput, {
-        ref: 'pictureInput', props: this.pictureProps, on: listeners
-      })])
+      const events = Object.fromEntries(Object.entries(listeners).map(([name, handler]) => [
+        'on' + name[0].toUpperCase() + name.slice(1), handler
+      ]))
+      return h('div', [h(PictureInput, { ...this.pictureProps, ref: 'pictureInput', ...events })])
     }
   }
   const wrapper = mount(parent)
@@ -38,8 +32,7 @@ export function mountWithParent (props = {}, listeners = {}) {
 
 export function unmount (wrapper) {
   if (!wrappers.delete(wrapper)) return
-  if (isVue3) wrapper.unmount()
-  else wrapper.destroy()
+  wrapper.unmount()
 }
 
 export async function cleanupComponents () {
@@ -51,7 +44,7 @@ export async function cleanupComponents () {
 
 export function findButton (wrapper, label) {
   const buttons = wrapper.findAll('button')
-  return (buttons.wrappers || buttons).find(button => button.text() === label)
+  return buttons.find(button => button.text() === label)
 }
 
 export function setFiles (input, files) {

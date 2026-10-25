@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { useBrowserMocks } from './helpers/browser.js'
 import { findButton, flushAsync, mountPictureInput, selectFile } from './helpers/component.js'
 import { imageData, makeFile, otherImageData } from './helpers/fixtures.js'
-import { nativeFiles } from './helpers/native-files.js'
+import { nativeFiles } from './helpers/native-files.cjs'
 
 describe('removal and reselection', () => {
   const browser = useBrowserMocks()

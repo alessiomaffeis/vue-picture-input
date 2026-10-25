@@ -1,6 +1,6 @@
 # vue-picture-input
 
-Mobile-friendly picture file input component for Vue.js 2 & 3 with image preview, drag and drop, EXIF orientation, and more.
+Mobile-friendly picture file input component for Vue 3 with image preview, drag and drop, EXIF orientation, and more.
 
 ![vue-pictur-input-demo](https://user-images.githubusercontent.com/2185511/167262626-5f10679f-70cf-4477-865a-508c67bca44e.gif)
 
@@ -20,11 +20,13 @@ yarn add vue-picture-input
 
 ## Compatibility
 
-This component works with both **Vue 2** (2.7+) and **Vue 3** (3.0+). The component is written in Vue 2 style (Options API) but is compatible with Vue 3.
+Version 5 requires **Vue 3.5 or newer within Vue 3**. Vue 2 support has been removed; Vue 2 applications should remain on `vue-picture-input@4`.
+
+The component continues to use the Options API. Its props, events, exposed refs, and browser fallbacks are unchanged by the Vue 3-only migration.
 
 ## Usage
 
-### Vue 2 & Vue 3 (Options API)
+### Vue 3 (Options API)
 
 ```HTML
 <template>
@@ -125,8 +127,8 @@ You can also use it directly in the browser through [unpkg's CDN](https://unpkg.
 <!DOCTYPE html>
 <html>
   <head>
-    <script src="https://unpkg.com/vue@2"></script>
-    <script src="https://unpkg.com/vue-picture-input/dist/vue-picture-input"></script>
+    <script src="https://unpkg.com/vue@3.5/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vue-picture-input@5/dist/vue-picture-input.umd.js"></script>
     <title>In the browser!</title>
   </head>
   <body>
@@ -135,15 +137,15 @@ You can also use it directly in the browser through [unpkg's CDN](https://unpkg.
       <picture-input></picture-input>
     </div>
     <script>
-      var app = new Vue({
-        el: "#app",
-        data: {
-          message: "Hello Vue!",
+      var app = Vue.createApp({
+        data() {
+          return { message: "Hello Vue!" };
         },
         components: {
           "picture-input": PictureInput,
         },
       });
+      app.mount("#app");
     </script>
   </body>
 </html>
@@ -151,7 +153,7 @@ You can also use it directly in the browser through [unpkg's CDN](https://unpkg.
 
 ## Example project
 
-Try it on CodeSandbox: https://codesandbox.io/s/github/alessiomaffeis/vue-picture-input-example
+https://codesandbox.io/s/github/alessiomaffeis/vue-picture-input-example
 
 ## Props
 
@@ -234,7 +236,7 @@ npm test
 npm run build
 ```
 
-The regression suites run against both Vue 2 and Vue 3. See [test/README.md](test/README.md) for coverage, framework-specific commands, and browser-mocking details.
+`npm test` runs the Vue 3 source regression suites, builds the production UMD artifact, and smoke-tests its global export, injected styles, and selection/removal behavior. CI runs these checks with both the locked Vue version and the Vue 3.5.0 minimum. See [test/README.md](test/README.md) for individual commands, minimum-version reproduction steps, coverage, and browser-mocking details.
 
 ## Contributions
 

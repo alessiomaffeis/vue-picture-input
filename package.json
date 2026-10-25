@@ -1,6 +1,6 @@
 {
   "name": "vue-picture-input",
-  "version": "4.0.4",
+  "version": "5.0.0",
   "description": "Mobile-friendly picture file input component with image preview and drag and drop.",
   "main": "PictureInput.vue",
   "files": [
@@ -10,7 +10,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "vitest run",
+    "test": "npm run test:unit && npm run test:bundle",
+    "test:unit": "vitest run",
+    "test:bundle": "npm run build && node --test test/umd.test.cjs",
     "test:watch": "vitest",
     "build": "vite build",
     "dev": "vite"
@@ -35,19 +37,16 @@
   },
   "homepage": "https://github.com/alessiomaffeis/vue-picture-input",
   "peerDependencies": {
-    "vue": "^2.7.0 || ^3.0.0"
+    "vue": "^3.5.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue2": "^2.3.4",
-    "@vue/test-utils": "^1.3.6",
-    "@vue/test-utils-vue3": "npm:@vue/test-utils@2.4.6",
+    "@vitejs/plugin-vue": "^6.0.0",
+    "@vue/test-utils": "^2.5.1",
     "jsdom": "^30.1.3",
     "vite": "^7.3.7",
     "vite-plugin-css-injected-by-js": "^4.0.1",
     "vitest": "^5.0.5",
-    "vue": "^2.7.16",
-    "vue-template-compiler": "^2.7.16",
-    "vue3": "npm:vue@^3.5.44"
+    "vue": "^3.5.0"
   },
   "unpkg": "dist/vue-picture-input.umd.js",
   "jsdelivr": "dist/vue-picture-input.umd.js"

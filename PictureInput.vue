@@ -293,9 +293,6 @@ export default {
     this.previewWidth = this.canvasWidth;
     this.previewHeight = this.canvasHeight;
   },
-  beforeDestroy() {
-    window.removeEventListener("resize", this.onResize);
-  },
   beforeUnmount() {
     window.removeEventListener("resize", this.onResize);
   },

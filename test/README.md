@@ -1,18 +1,38 @@
 # Regression tests
 
-Run the complete suite, or select one framework:
+Run the complete Vue 3 suite:
 
 ```sh
 npm test
-npm test -- --project vue2
-npm test -- --project vue3
+npm run test:unit
+npm run test:bundle
 npm run test:watch
 npm run build
 ```
 
-The shared regression suites compile and mount `PictureInput.vue` separately with Vue 2.7 and Vue 3. The original snapshot and method-level event tests in `PictureInput.spec.js` also run in the Vue 2 project.
+`npm test` runs the source regression suite, then builds a fresh production artifact and runs its UMD smoke test. `test:unit` runs only the source suite (and accepts Vitest filters); `test:bundle` always rebuilds before checking the bundle. Watch mode runs only source tests.
+
+The source regression suites, including the snapshot and method-level event tests in `PictureInput.spec.js`, compile and mount `PictureInput.vue` with Vue 3 and the official Vite Vue plugin. Each case runs once; Vue 2 is no longer supported.
+
+## Minimum-version coverage
+
+`.github/workflows/test.yml` runs the full source/build/UMD checks on Node 24 with both the locked Vue version and the declared minimum, Vue 3.5.0. The minimum leg asserts that both the installed Vue runtime and its SFC compiler are exactly 3.5.0 before running tests; merely printing a version is not sufficient. The minimum installation intentionally leaves the package manifest and lockfile unchanged. Reproduce that leg locally with:
+
+```sh
+npm ci
+npm install --no-save --package-lock=false vue@3.5.0
+node -e "const assert = require('node:assert/strict'); assert.equal(require('vue/package.json').version, '3.5.0'); assert.equal(require('vue/compiler-sfc').version, '3.5.0');"
+npm test
+npm ci
+```
+
+The final `npm ci` restores the locked development dependencies. Minimum-version compatibility is not a recommendation to use an older patch; use the latest compatible Vue patch in applications.
+
+This leg intentionally overlays the minimum runtime/compiler on the locked test tooling. Other Vue packages used by Test Utils, such as its compiler-dom/shared dependencies, are not forced to 3.5.0 and may remain at newer locked versions. The check establishes component runtime/compiler compatibility, not a pristine all-3.5.0 dependency tree.
 
 ## Coverage
+
+- `umd.test.cjs`: Node's test runner loads the actual published UMD path and Vue's browser global into jsdom; verifies the `PictureInput` global, injected CSS, native FileReader/change/ref behavior, removal and teardown. No source SFC or compiler test plugin is imported.
 
 - `PictureInput.validation.spec.js`: accepted MIME types, size boundaries, cancellation, rejection metadata, alert suppression, and preserving the previous successful selection.
 - `PictureInput.native-input.spec.js`: rejected picker/drop files are absent from native FormData, while previous preview/ref state is retained; rejected prefills do not clear the native selection.
@@ -30,12 +50,10 @@ The shared regression suites compile and mount `PictureInput.vue` separately wit
 
 Geometry tests assert canvas drawing coordinates rather than screenshots. EXIF fixtures contain binary JPEG headers; actual image decoding is mocked. One integration test uses jsdom's real FileReader to verify the emitted Base64 payload. These tests do not replace real-device checks of camera capture, native image orientation, or pixel rendering.
 
-`helpers/native-files.js` isolates a jsdom internal API used to populate genuine FileLists because jsdom has no DataTransfer constructor. Native-input tests retain the real input value setter and FormData serialization rather than mocking away file clearing.
+`helpers/native-files.cjs` isolates a jsdom internal API used to populate genuine FileLists because jsdom has no DataTransfer constructor. It is shared by Vitest and the Node UMD test; the latter supplies its own jsdom document. Native-input tests retain the real input value setter and FormData serialization rather than mocking away file clearing.
 
 That API is private, so jsdom upgrades may require updating this isolated fixture. Replacing it with a local array/mock would lose the live-FileList and native FormData behavior these regression tests are intended to protect.
 
-## Framework isolation
+## Toolchain
 
-Vue 2 remains the development/build default. The `vue3` and `@vue/test-utils-vue3` npm aliases add a separate Vue 3 runtime and test utilities without changing the published peer dependencies or UMD build. Test Utils 2.4.6 is pinned because newer versions declare a Vue 3 peer that conflicts with the Vue 2 build dependency.
-
-The Vue 3 project uses the official SFC compiler through `helpers/vue3-plugin.js` to compile the script and template. Its ESM test-utils alias ensures imports use the Vue 3 runtime rather than resolving the Vue 2 CommonJS package. Scoped styles are not compiled by this test-only plugin; DOM/class and inline-style assertions do not depend on a layout engine.
+Vue 3 is the build and test runtime, with Vue Test Utils 2 for mounting. Both Vite and Vitest use `@vitejs/plugin-vue`, including normal scoped-style compilation. There are no alternate Vue runtime aliases or custom SFC compiler plugins. DOM/class and canvas-coordinate assertions still do not depend on a browser layout engine.

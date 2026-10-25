@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { useBrowserMocks } from './helpers/browser.js'
 import { flushAsync, mountPictureInput, selectFile } from './helpers/component.js'
 import { imageData, makeFile, otherImageData, pngBytes } from './helpers/fixtures.js'
-import { nativeFiles } from './helpers/native-files.js'
+import { nativeFiles } from './helpers/native-files.cjs'
 
 describe('prefill lifecycle', () => {
   const browser = useBrowserMocks()
