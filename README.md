@@ -213,8 +213,8 @@ https://codesandbox.io/s/github/alessiomaffeis/vue-picture-input-example
 - **alertOnError**: (boolean, optional) Set _:alertOnError="false"_ to disable displaying alerts on attemps to select file with
   wrong type or too big.
   Default value: true.
-- **customStrings**: (object, optional) use this to provide one or more custom strings (see the example above). Here are the available strings and their default values:
 - **capture**: (string, optional) use this if you want to allow image capture from capture devices (e.g. camera)
+- **customStrings**: (object, optional) use this to provide one or more custom strings (see the example above). Here are the available strings and their default values:
 
 ```js
 {
@@ -263,7 +263,7 @@ Unmounting removes the resize listener and cancels pending reads, image decoding
 Rejected selections and dropped files clear the native file input, so a form cannot submit the rejected file. The previous successful preview and exposed `file` reference are retained, but the native form field stays empty until a file is selected again. Invalid prefills leave the native input untouched.
 
 ## DeepWiki
-You can explore more about this procject on DeepWiki too:
+You can explore more about this project on DeepWiki too:
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/alessiomaffeis/vue-picture-input)
 
@@ -277,7 +277,7 @@ npx playwright install chromium
 npm run test:browser
 ```
 
-`npm test` runs strict SFC type checking, the Vue 3 source regression suites, and a fresh production build with package-content checks. It does not require a browser. `npm run test:browser` builds the actual ESM artifact and tests it in Chromium with real image decoding, canvas rendering, file inputs, native FormData, and layout. Vue is served locally through an import map; no CDN is required. `test:bundle` remains an alias for the browser suite.
+`npm test` runs strict SFC type checking, the Vue 3 source regression suites, and a fresh production build with package-content checks. It does not require a browser. `npm run test:browser` builds the actual ESM artifact and tests it in Chromium with real image decoding, canvas rendering, file inputs, native FormData, and layout. Vue is served locally through an import map; no CDN is required.
 
 CI runs source/package checks with locked Vue and the Vue 3.5.0 minimum, plus a separate Chromium job using locked Vue. `npm run typecheck` and `npm run test:package` run individual checks. The `prepack` hook rebuilds automatically before `npm pack` or `npm publish`. See [test/README.md](test/README.md) for setup, coverage, debugging, and minimum-version reproduction commands.
 
