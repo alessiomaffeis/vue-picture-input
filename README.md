@@ -273,14 +273,13 @@ You can explore more about this procject on DeepWiki too:
 ```sh
 npm ci
 npm test
-npm run test:package
-npm run typecheck
-npm run build
+npx playwright install chromium
+npm run test:browser
 ```
 
-`npm test` runs strict SFC type checking, the Vue 3 source regression suites, and a fresh production ESM smoke test covering its default export, external Vue import, injected styles, reactive parent refs, and selection/prefill/removal behavior. `npm run typecheck` runs checking alone. CI runs the full pipeline with both the locked Vue version and the Vue 3.5.0 minimum. See [test/README.md](test/README.md) for individual commands, minimum-version reproduction steps, coverage, and browser-mocking details.
+`npm test` runs strict SFC type checking, the Vue 3 source regression suites, and a fresh production build with package-content checks. It does not require a browser. `npm run test:browser` builds the actual ESM artifact and tests it in Chromium with real image decoding, canvas rendering, file inputs, native FormData, and layout. Vue is served locally through an import map; no CDN is required. `test:bundle` remains an alias for the browser suite.
 
-`npm run test:package` builds and checks npm's published file list. CI runs this check on both Vue versions. The `prepack` hook also rebuilds automatically before `npm pack` or `npm publish`.
+CI runs source/package checks with locked Vue and the Vue 3.5.0 minimum, plus a separate Chromium job using locked Vue. `npm run typecheck` and `npm run test:package` run individual checks. The `prepack` hook rebuilds automatically before `npm pack` or `npm publish`. See [test/README.md](test/README.md) for setup, coverage, debugging, and minimum-version reproduction commands.
 
 ## Contributions
 

@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PictureInput browser fixture</title>
+    <style>
+      body { margin: 0; }
+      #host { width: 100%; max-width: 400px; }
+      output { display: block; overflow-wrap: anywhere; }
+    </style>
+    <script type="importmap">
+      { "imports": { "vue": "/vue.mjs" } }
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      import { createApp, h, nextTick, shallowRef, useTemplateRef, version } from 'vue'
+      import PictureInput from '/picture-input.mjs'
+
+      const events = shallowRef([])
+      const props = shallowRef({
+        width: 400, height: 200, name: 'photo', removable: true,
+        toggleAspectRatio: true, alertOnError: false, changeOnClick: false
+      })
+      const describeFile = file => file === undefined ? 'unset' : file === null ? null : {
+        name: file.name || '', size: file.size, type: file.type, modified: file.lastModified || 0
+      }
+      // Event logging has its own render effect, so it cannot force the
+      // parent's public-state output to update and hide broken ref reactivity.
+      const EventLog = {
+        setup: () => () => h('output', { id: 'events' }, JSON.stringify(events.value))
+      }
+      const app = createApp({
+        setup () {
+          const picture = useTemplateRef('picture')
+          function snapshot () {
+            const instance = picture.value
+            if (!instance) return null
+            return {
+              image: instance.image ?? null,
+              file: describeFile(instance.file),
+              fileName: instance.fileName ?? null,
+              fileSize: instance.fileSize ?? null,
+              fileType: instance.fileType ?? null,
+              fileModified: instance.fileModified ?? null,
+              selected: instance.imageSelected,
+              preloaded: instance.imagePreloaded,
+              canvasWidth: instance.canvasWidth,
+              canvasHeight: instance.canvasHeight,
+              previewWidth: instance.previewWidth,
+              previewHeight: instance.previewHeight
+            }
+          }
+          function pixel () {
+            const canvas = picture.value.$refs.previewCanvas
+            return Array.from(canvas.getContext('2d').getImageData(
+              Math.floor(canvas.width / 2), Math.floor(canvas.height / 2), 1, 1
+            ).data)
+          }
+          function record (type, payload = {}) {
+            events.value = [...events.value, {
+              type, ...payload, ...(['change', 'prefill'].includes(type) ? { pixel: pixel() } : {})
+            }]
+          }
+          // Only the fixture exposes this bridge. The production component is
+          // imported unchanged; the parent output reads its live public refs.
+          window.pictureFixture = {
+            get picture () { return picture.value },
+            vueVersion: version,
+            pixel,
+            async updateProps (updates) {
+              props.value = { ...props.value, ...updates }
+              await nextTick()
+            },
+            unmount () { app.unmount() }
+          }
+          return () => h('main', [
+            h('button', {
+              id: 'select-through-ref', type: 'button', onClick: () => picture.value.selectImage()
+            }, 'Select through ref'),
+            h('form', { id: 'upload-form' }, [
+              h('div', { id: 'host' }, [h(PictureInput, {
+                ...props.value,
+                ref: 'picture',
+                onChange: image => record('change', { image }),
+                onPrefill: () => record('prefill'),
+                onRemove: () => record('remove'),
+                onClick: () => record('click'),
+                onError: error => record('error', { error }),
+                onAspectratiochange: orientation => record('aspectratiochange', { orientation })
+              })])
+            ]),
+            h('output', { id: 'public-state' }, JSON.stringify(snapshot())),
+            h(EventLog)
+          ])
+        }
+      })
+      app.mount('#app')
+      await nextTick()
+      document.documentElement.dataset.ready = 'true'
+    </script>
+  </body>
+</html>

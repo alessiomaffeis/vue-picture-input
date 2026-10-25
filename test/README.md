@@ -1,9 +1,16 @@
 # Regression tests
 
-Run the complete Vue 3 suite:
+Run the fast Vue 3 source and package checks, then the real-browser suite:
 
 ```sh
 npm test
+npx playwright install chromium
+npm run test:browser
+```
+
+Individual commands:
+
+```sh
 npm run typecheck
 npm run test:unit
 npm run test:bundle
@@ -12,7 +19,9 @@ npm run test:watch
 npm run build
 ```
 
-`npm test` runs strict SFC type checking with `vue-tsc --noEmit`, the source regression suite, then a fresh production build and its ESM smoke test. `typecheck` runs only checking; `test:unit` runs only the source suite (and accepts Vitest filters); `test:bundle` always rebuilds before checking the bundle. Watch mode runs only source tests.
+`npm test` runs strict SFC type checking with `vue-tsc --noEmit`, the source regression suite, and `test:package` (including a fresh ESM build). It does not require Chromium. `typecheck` runs only checking; `test:unit` runs only the source suite and accepts Vitest filters. Watch mode runs only source tests.
+
+`test:browser` always builds before running Playwright against the actual ESM artifact. `test:bundle` is a compatibility alias for it. The former Node/jsdom distribution smoke test has been replaced by this real-browser suite, not retained as a duplicate.
 
 `test:package` runs the prepack build, then checks `npm pack --dry-run --json --ignore-scripts` for exactly the source SFC, ESM artifact, README, license, and package manifest. The dry run skips lifecycle scripts because the prepack build has already run. Missing entry files, old bundles, and unexpected development files fail the check. Normal `npm pack` and `npm publish` invoke the `prepack` build automatically.
 
@@ -20,14 +29,13 @@ The source regression suites, including the snapshot and mounted event-timing te
 
 ## Minimum-version coverage
 
-`.github/workflows/test.yml` runs the full type/source/build/ESM and package-content checks on Node 24 with both the locked Vue version and the declared minimum, Vue 3.5.0. The minimum leg asserts that both the installed Vue runtime and its SFC compiler are exactly 3.5.0 before running tests; merely printing a version is not sufficient. The minimum installation intentionally leaves the package manifest and lockfile unchanged. Reproduce that leg locally with:
+`.github/workflows/test.yml` runs type/source/build/package-content checks on Node 24 with both the locked Vue version and the declared minimum, Vue 3.5.0. The minimum leg asserts that both the installed Vue runtime and its SFC compiler are exactly 3.5.0 before running tests; merely printing a version is not sufficient. The minimum installation intentionally leaves the package manifest and lockfile unchanged. Reproduce that leg locally with:
 
 ```sh
 npm ci
 npm install --no-save --package-lock=false vue@3.5.0
 node -e "const assert = require('node:assert/strict'); assert.equal(require('vue/package.json').version, '3.5.0'); assert.equal(require('vue/compiler-sfc').version, '3.5.0');"
 npm test
-npm run test:package
 npm ci
 ```
 
@@ -35,10 +43,20 @@ The final `npm ci` restores the locked development dependencies. Minimum-version
 
 This leg intentionally overlays the minimum runtime/compiler on the locked test tooling. Other Vue packages used by Test Utils, such as its compiler-dom/shared dependencies, are not forced to 3.5.0 and may remain at newer locked versions. The check establishes component runtime/compiler compatibility, not a pristine all-3.5.0 dependency tree.
 
+## Real-browser setup
+
+`playwright.config.mjs` runs one headless Chromium worker. Playwright starts and stops `browser/server.mjs`, a loopback-only Node HTTP server with an explicit route allowlist. It serves the built module byte-for-byte, the installed production browser Vue ESM build, the fixture HTML, and tiny valid PNGs. There is no Vite dev-server transformation, external CDN, or extra application framework.
+
+`browser/index.html` mounts the production component in a real parent form using a native import map. Its test-only bridge calls the public instance API; parent output reads exposed values reactively rather than copying them in event handlers. FileReader, image decoding, canvas, layout, DataTransfer, FileList, and FormData all use native browser implementations. PNG fixtures are stored as base64 JSON so no generated binary files are needed. The source suite's header-only image fixtures are not reused here.
+
+Install Chromium once per Playwright version with `npx playwright install chromium`. If Linux system libraries are missing, use `npx playwright install --with-deps chromium`. The separate CI browser job uses locked Vue only and installs just the Chromium headless shell (`--with-deps --only-shell chromium`), avoiding a browser/version matrix.
+
+Use `npm run test:browser -- --headed` for interactive debugging. Tests use auto-waiting assertions, not fixed sleeps; page errors, console errors, unexpected dialogs, and external HTTP requests fail the suite. Traces and screenshots are retained only for failures in `test-results/`; CI uploads them as `chromium-failures`. Open a downloaded trace with `npx playwright show-trace path/to/trace.zip`.
+
 ## Coverage
 
-- `package.test.mjs`: checks npm's actual dry-run file list against the five allowed package files and verifies that the source/CDN entries are included. It is run separately through `test:package`, after the prepack build, on both CI matrix legs.
-- `esm.test.mjs`: Node's test runner dynamically imports the actual published ESM path with external production Vue, after installing a jsdom DOM. Verifies the default export without browser globals, a single ESM artifact with an external `vue` import, injected CSS, native FileReader selection/replacement, live reactive parent refs and metadata, public methods, Blob prefill identity versus retained native selection, removal and teardown. Globals and `NODE_ENV` are restored afterward. No source SFC or compiler test plugin is imported.
+- `package.test.mjs`: checks npm's actual dry-run file list against the five allowed package files and verifies that the source/CDN entries are included. It runs through `test:package`, after the prepack build, as part of `npm test` on both CI matrix legs.
+- `browser/picture-input.spec.mjs`: real Chromium coverage of unmodified ESM loading and local external Vue, injected scoped CSS, native picker selection/replacement, decoded canvas pixels before success events, reactive parent refs/metadata, public methods, File/Blob/URL prefills versus retained native selection, clear-all removal/reselection, rejected input/FormData clearing, aspect toggling, native viewport resize, and drops using a real DataTransfer. No source SFC or compiler test plugin is imported.
 
 - `PictureInput.spec.js`: unchanged markup snapshot, resize teardown, and first/replacement/prefill/no-preview event timing through mounted components.
 - `PictureInput.composition.spec.js`: full exposed instance surface on real parent refs, reactive parent rendering without event-handler copying, deeply reactive messages with stable identity, File/Blob identity, initialization-only settings, single prefill initialization/updates, pre-render clear-prefill removal timing, runtime Boolean casting, attribute fallthrough, custom-string filtering, and instance isolation.
@@ -53,16 +71,16 @@ This leg intentionally overlays the minimum runtime/compiler on the locked test 
 - `PictureInput.exif.spec.js`: little-/big-endian JPEG headers, rotation values, missing metadata, native-orientation support, and bounded EXIF reads.
 - `PictureInput.presentation.spec.js`: visibility, prefill controls, no-preview prefill success-message suppression, input attributes, default/custom classes, HTML-enabled messages, escaped labels, custom errors, and unsupported-preview fallback.
 
-## Browser fixtures
+## Source-suite browser mocks
 
 `helpers/browser.js` controls FileReader completion/aborts, image decoding/cancellation, fetch responses, per-canvas contexts, container widths, and pixel density. Capability branches use real browser API/user-agent fixtures: missing canvas/FileReader, unsupported upload APIs, and touch/drag support. Desktop drag tests remove jsdom's configurable `window.ontouchstart` property because the component checks property presence; cleanup restores its original descriptor. Tests advance each loading stage explicitly, so they can detect premature success events without timing-dependent image downloads. Every test unmounts its components and restores browser mocks.
 
-Geometry tests assert canvas drawing coordinates rather than screenshots. EXIF fixtures contain binary JPEG headers; actual image decoding is mocked. One integration test uses jsdom's real FileReader to verify the emitted Base64 payload. These tests do not replace real-device checks of camera capture, native image orientation, or pixel rendering.
+Source geometry tests assert mocked canvas drawing coordinates rather than screenshots. EXIF fixtures contain binary JPEG headers; image decoding is mocked in the source suite. One source integration test uses jsdom's real FileReader to verify the emitted Base64 payload. The separate browser suite checks actual PNG decoding, canvas pixels, and layout. Neither suite replaces real-device camera checks, native EXIF-orientation checks, or cross-browser testing beyond Chromium.
 
-`helpers/native-files.cjs` isolates a jsdom internal API used to populate genuine FileLists because jsdom has no DataTransfer constructor. It is shared by Vitest and the Node ESM test; the latter supplies its own jsdom document. Native-input tests retain the real input value setter and FormData serialization rather than mocking away file clearing.
+`helpers/native-files.cjs` isolates a jsdom internal API used to populate genuine FileLists because jsdom has no DataTransfer constructor. It is used only by the source regression suite; the browser suite uses real browser FileLists and FormData. Source native-input tests retain the real jsdom input value setter and FormData serialization rather than mocking away file clearing.
 
 That API is private, so jsdom upgrades may require updating this isolated fixture. Replacing it with a local array/mock would lose the live-FileList and native FormData behavior these regression tests are intended to protect.
 
 ## Toolchain
 
-Vue 3 is the build and test runtime, with Vue Test Utils 2 for mounting. TypeScript and `vue-tsc` are development-only dependencies; the focused strict `tsconfig.json` checks the source SFC without converting JavaScript tests or build configuration. Both Vite and Vitest use `@vitejs/plugin-vue`, including normal scoped-style compilation. The configs and prebuilt artifact use `.mjs` for ESM without requiring a package-wide module-type change. Vite 8 builds the ESM artifact with Rolldown and `vite-plugin-css-injected-by-js` 5; Vue remains external and CSS is still injected by the bundle. The default npm entry remains `PictureInput.vue`. Vite strips TypeScript but does not replace checking. There are no alternate Vue runtime aliases or custom SFC compiler plugins. DOM/class and canvas-coordinate assertions still do not depend on a browser layout engine.
+Vue 3 is the build and test runtime, with Vue Test Utils 2 for source mounting and Playwright Test for native Chromium integration. TypeScript and `vue-tsc` are development-only dependencies; the focused strict `tsconfig.json` checks the source SFC without converting JavaScript tests or build configuration. Both Vite and Vitest use `@vitejs/plugin-vue`, including normal scoped-style compilation. The configs and prebuilt artifact use `.mjs` for ESM without requiring a package-wide module-type change. Vite 8 builds the ESM artifact with Rolldown and `vite-plugin-css-injected-by-js` 5; Vue remains external and CSS is still injected by the bundle. The default npm entry remains `PictureInput.vue`. Vite strips TypeScript but does not replace checking. There are no alternate Vue runtime aliases or custom SFC compiler plugins. Source tests retain deterministic mocks; browser tests separately exercise the actual browser layout and rendering engines.

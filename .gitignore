@@ -5,3 +5,5 @@ node_modules/
 dist/
 npm-debug.log
 *.tgz
+test-results/
+playwright-report/
