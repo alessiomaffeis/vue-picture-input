@@ -1,4 +1,5 @@
 import { readFileSync, readdirSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { expect, test } from '@playwright/test'
 
 const root = new URL('../../', import.meta.url)
@@ -8,6 +9,19 @@ const images = JSON.parse(readFileSync(new URL('fixtures/images.json', import.me
 const failures = new WeakMap()
 const red = [255, 0, 0, 255]
 const blue = [0, 0, 255, 255]
+const photos = [
+  { name: 'landscape', width: 640, height: 424 },
+  { name: 'portrait', width: 640, height: 965 }
+].map(photo => {
+  const file = new URL(`fixtures/${photo.name}.jpg`, import.meta.url)
+  const bytes = readFileSync(file)
+  return {
+    ...photo, file: fileURLToPath(file), filename: photo.name + '.jpg', size: bytes.length,
+    dataURL: 'data:image/jpeg;base64,' + bytes.toString('base64'),
+    previewWidth: photo.width > photo.height ? 400 : 200,
+    previewHeight: photo.width > photo.height ? 200 : 400
+  }
+})
 
 function payload (kind = 'landscape', name = kind + '.png') {
   return { name, mimeType: 'image/png', buffer: Buffer.from(images[kind].base64, 'base64') }
@@ -46,6 +60,49 @@ function submittedFile (page) {
     const file = new FormData(form).get('photo')
     return file && { name: file.name, size: file.size, type: file.type }
   })
+}
+
+async function expectPhotoPreview (page, photo, crop) {
+  const current = await state(page)
+  expect(current).toMatchObject({
+    image: photo.dataURL, fileName: photo.filename, fileSize: photo.size, fileType: 'image/jpeg',
+    imageWidth: photo.width, imageHeight: photo.height,
+    canvasWidth: photo.previewWidth, canvasHeight: photo.previewHeight,
+    previewWidth: photo.previewWidth, previewHeight: photo.previewHeight
+  })
+  expect(current.imageRatio).toBeCloseTo(photo.width / photo.height)
+  const decoded = await page.evaluate(() => {
+    const image = window.pictureFixture.picture.imageObject
+    return { complete: image.complete, width: image.naturalWidth, height: image.naturalHeight }
+  })
+  expect(decoded).toEqual({ complete: true, width: photo.width, height: photo.height })
+  expect(await page.locator('canvas').boundingBox()).toMatchObject({
+    width: photo.previewWidth, height: photo.previewHeight
+  })
+  // Check coverage and photographic detail, not JPEG-specific RGB values or
+  // screenshot baselines that can vary with decoder/rendering versions.
+  const pixels = await page.locator('canvas').evaluate(canvas => {
+    const { data } = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height)
+    const colors = new Set()
+    let opaque = 0
+    let transparent = 0
+    for (let offset = 0; offset < data.length; offset += 4) {
+      if (data[offset + 3] === 255) {
+        opaque++
+        colors.add((data[offset] >> 5) * 64 + (data[offset + 1] >> 5) * 8 + (data[offset + 2] >> 5))
+      } else if (data[offset + 3] === 0) transparent++
+    }
+    return { opaque, transparent, total: canvas.width * canvas.height, colors: colors.size }
+  })
+  expect(pixels.colors).toBeGreaterThan(16)
+  if (crop) {
+    expect(pixels.opaque).toBe(pixels.total)
+    expect(pixels.transparent).toBe(0)
+  } else {
+    expect(pixels.transparent).toBeGreaterThan(0)
+    expect(pixels.opaque).toBeGreaterThan(pixels.total / 2)
+    expect(pixels.opaque).toBeLessThan(pixels.total)
+  }
 }
 
 test.beforeEach(async ({ page, baseURL }) => {
@@ -262,3 +319,42 @@ test('native DataTransfer drops highlight, prevent default, decode, and populate
     await transfer.dispose()
   }
 })
+
+for (const photo of photos) {
+  for (const crop of [true, false]) {
+    test(`${photo.filename} decodes, matches aspect, and renders a ${crop ? 'cropped' : 'contained'} preview`, async ({ page }) => {
+      await page.evaluate(crop => window.pictureFixture.updateProps({ autoToggleAspectRatio: true, crop }), crop)
+      // Pass the checked-in JPEG path, not a generated buffer or mock image.
+      await page.locator('input[type=file]').setInputFiles(photo.file)
+      await expectEvents(page, ['change'])
+      await expectPhotoPreview(page, photo, crop)
+      expect(await state(page)).toMatchObject({ selected: true, preloaded: false, sameAsNative: true })
+      expect(await submittedFile(page)).toEqual({ name: photo.filename, size: photo.size, type: 'image/jpeg' })
+      const [changed] = await events(page)
+      expect(changed.image).toBe(photo.dataURL)
+      expect(changed.pixel[3]).toBe(255)
+      // Automatic matching must not emit a manual aspectratiochange event.
+      await expectEvents(page, ['change'])
+    })
+  }
+
+  test(`${photo.filename} prefills from the local JPEG URL without replacing the native upload`, async ({ page }) => {
+    const selected = photos.find(candidate => candidate.name !== photo.name)
+    await page.evaluate(() => window.pictureFixture.updateProps({ autoToggleAspectRatio: true }))
+    await page.locator('input[type=file]').setInputFiles(selected.file)
+    await expectEvents(page, ['change'])
+    const response = page.waitForResponse(response => new URL(response.url()).pathname === '/' + photo.filename)
+    await page.evaluate(filename => window.pictureFixture.updateProps({
+      prefill: '/' + filename, prefillOptions: { fileName: filename }
+    }), photo.filename)
+    expect((await response).headers()['content-type']).toBe('image/jpeg')
+    await expectEvents(page, ['change', 'prefill'])
+    await expectPhotoPreview(page, photo, true)
+    expect(await state(page)).toMatchObject({
+      selected: false, preloaded: true, nativeFile: { name: selected.filename }, sameAsNative: false
+    })
+    expect(await submittedFile(page)).toEqual({ name: selected.filename, size: selected.size, type: 'image/jpeg' })
+    expect((await events(page))[1].pixel[3]).toBe(255)
+    expect(await page.evaluate(() => window.pictureFixture.picture.file instanceof File)).toBe(true)
+  })
+}

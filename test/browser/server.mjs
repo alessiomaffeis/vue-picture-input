@@ -10,7 +10,9 @@ const images = JSON.parse(readFileSync(new URL('fixtures/images.json', import.me
 const routes = new Map([
   ['/', { file: new URL('index.html', import.meta.url), type: 'text/html' }],
   ['/picture-input.mjs', { file: new URL(pkg.unpkg, root), type: 'text/javascript' }],
-  ['/vue.mjs', { file: new URL('./dist/vue.esm-browser.prod.js', vuePackage), type: 'text/javascript' }]
+  ['/vue.mjs', { file: new URL('./dist/vue.esm-browser.prod.js', vuePackage), type: 'text/javascript' }],
+  ['/landscape.jpg', { file: new URL('fixtures/landscape.jpg', import.meta.url), type: 'image/jpeg' }],
+  ['/portrait.jpg', { file: new URL('fixtures/portrait.jpg', import.meta.url), type: 'image/jpeg' }]
 ])
 
 const server = createServer((request, response) => {
@@ -32,8 +34,9 @@ const server = createServer((request, response) => {
     const status = route || image ? 200 : 404
     const body = route ? readFileSync(route.file)
       : image ? Buffer.from(image.base64, 'base64') : Buffer.from('Not found')
+    const type = image ? 'image/png' : route?.type || 'text/plain'
     response.writeHead(status, {
-      'Content-Type': image ? 'image/png' : (route?.type || 'text/plain') + '; charset=utf-8',
+      'Content-Type': type.startsWith('text/') ? type + '; charset=utf-8' : type,
       'Content-Length': body.length,
       'Cache-Control': 'no-store'
     })
