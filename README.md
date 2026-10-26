@@ -264,8 +264,7 @@ Rejected selections and dropped files clear the native file input, so a form can
 
 ## DeepWiki
 You can explore more about this project on DeepWiki too:
-
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/alessiomaffeis/vue-picture-input)
+https://deepwiki.com/alessiomaffeis/vue-picture-input
 
 
 ## Tests
